@@ -1,5 +1,5 @@
 const std = @import("std");
-const build_helpers = @import("build_helpers.zig");
+const build_helpers = @import("src/build_helpers.zig");
 const package_name = "ziggy-starkdust";
 const package_path = "src/lib.zig";
 
