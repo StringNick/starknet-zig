@@ -1100,6 +1100,17 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
             return self.mul(&(den.inverse() orelse return FieldError.DivisionByZero));
         }
 
+        // TODO: make desc
+        pub fn divRem(self: Self, den: Self) FieldError!struct { Self, Self } {
+            if (den.isZero()) return FieldError.DivisionByZero;
+
+            const q, const r = self.toBigInt().divRem(&den.toBigInt());
+            return .{
+                Self.toMontgomery(q),
+                Self.toMontgomery(r),
+            };
+        }
+
         /// Check if two field elements are equal.
         ///
         /// Determines whether the current field element is equal to another field element.
