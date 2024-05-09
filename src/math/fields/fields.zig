@@ -1143,11 +1143,23 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
         ///   - A u64 representation of the field element if conversion succeeds.
         ///   - Error(ValueTooLarge) if the value exceeds the representable range of the target type.
         pub fn toInt(self: Self, comptime T: type) !T {
+            // TODO maybe exist a better way to convert
             const asU256 = self.toU256();
             // Check if the value is small enough to fit into a type T integer
             if (asU256 > std.math.maxInt(T)) return error.ValueTooLarge;
 
             // Otherwise, it's safe to cast
+            return @intCast(asU256);
+        }
+
+        pub fn toSignedInt(self: Self, comptime T: type) !T {
+            // TODO: improve this code
+            const asU256 = self.toU256();
+
+            if (asU256 > comptime value: {
+                break :value modulo >> @as(u32, 1);
+            }) return -@as(T, @intCast(modulo - asU256));
+
             return @intCast(asU256);
         }
 
