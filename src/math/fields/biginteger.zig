@@ -56,7 +56,8 @@ pub fn bigInt(comptime N: usize) type {
         ///   - For integers from 65 to 128 bits, the function performs truncation and division to fit into the limbs of the big integer.
         ///   - For larger integers, the function converts the integer to bytes and then initializes the field element.
         pub fn fromInt(comptime T: type, num: T) Self {
-            std.debug.assert(num >= 0);
+            // std.debug.assert(num >= 0);
+            if (num < 0) return Self.fromInt(u8, 0).subWithBorrow(fromInt(std.meta.Int(.unsigned, @typeInfo(T).Int.bits), @abs(num)))[0];
 
             // Switch based on the size of the integer value
             return switch (@typeInfo(T).Int.bits) {
