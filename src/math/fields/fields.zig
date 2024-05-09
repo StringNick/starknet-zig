@@ -225,6 +225,10 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
             return val;
         }
 
+        pub fn toStdBigSignedInt(self: Self, allocator: std.mem.Allocator) !std.math.big.int.Managed {
+            return std.math.big.int.Managed.initSet(allocator, try self.toSignedInt(i256));
+        }
+
         /// Converts a field element from Montgomery representation to a `bigInt` value.
         ///
         /// This function converts a field element from Montgomery representation to a `bigInt` value, allowing
@@ -632,8 +636,16 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
             return self.eql(one());
         }
 
+        // Implemention taken from Jonathan Lei's starknet-rs
+        // https://github.com/xJonathanLEI/starknet-rs/blob/a3a0050f80e90bd40303256a85783f4b5b18258c/starknet-crypto/src/fe_utils.rs#L46
+        /// Multiplicative inverse of `self` in modulo `p`.
         pub fn modInverse(operand: Self, modulus: Self) !Self {
-            const ext = arithmetic.extendedGCD(@bitCast(operand.toU256()), @bitCast(modulus.toU256()));
+            // due overflow we use 2xBit count int
+            const ext = arithmetic.extendedGCD(
+                i512,
+                @intCast(operand.toU256()),
+                @intCast(modulus.toU256()),
+            );
 
             if (ext.gcd != 1) {
                 @panic("GCD must be one");
@@ -644,7 +656,7 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
             else
                 ext.x;
 
-            return fromInt(u256, @bitCast(result));
+            return fromInt(u256, @intCast(result));
         }
 
         /// Computes the square of a finite field element.
