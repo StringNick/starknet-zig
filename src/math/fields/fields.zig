@@ -204,6 +204,27 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
             }
         }
 
+        pub fn toLeDigits(self: Self) [n_limbs]u64 {
+            return self.toBigInt().limbs;
+        }
+
+        pub fn toBeDigits(self: Self) [n_limbs]u64 {
+            return val: {
+                var digits = self.toLeDigits();
+                std.mem.reverse(u64, digits[0..]);
+                break :val digits;
+            };
+        }
+
+        pub fn toStdBigInt(self: Self, allocator: std.mem.Allocator) !std.math.big.int.Managed {
+            var val = try std.math.big.int.Managed.initCapacity(allocator, n_limbs);
+            errdefer val.deinit();
+
+            @memcpy(val.limbs, &self.toLeDigits());
+
+            return val;
+        }
+
         /// Converts a field element from Montgomery representation to a `bigInt` value.
         ///
         /// This function converts a field element from Montgomery representation to a `bigInt` value, allowing

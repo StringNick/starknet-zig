@@ -12,6 +12,19 @@ const expectEqualSlices = std.testing.expectEqualSlices;
 // The prime is 0x800000000000011000000000000000000000000000000000000000000000001.
 pub const Felt252 = fields.Field(4, STARKNET_PRIME);
 
+test "Felt252: verify to std big int limbs equal" {
+    var expected_big_std = try std.math.big.int.Managed.initSet(std.testing.allocator, STARKNET_PRIME - 10);
+    defer expected_big_std.deinit();
+
+    const val_big = bigInt(4).fromInt(u256, STARKNET_PRIME - 10);
+    const val_big_f = Felt252.toMontgomery(val_big);
+    var val_big_f_mon = try val_big_f.toStdBigInt(std.testing.allocator);
+    defer val_big_f_mon.deinit();
+
+    try expectEqualSlices(usize, expected_big_std.limbs, &val_big.limbs);
+    try expectEqualSlices(usize, expected_big_std.limbs, val_big_f_mon.limbs);
+}
+
 test "Felt252: fromU8 should return a field element from a u8" {
     try expectEqual(
         @as(u256, std.math.maxInt(u8)),
