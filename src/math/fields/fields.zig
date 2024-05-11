@@ -764,9 +764,7 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
         /// # Returns
         /// The result of raising the field element to the specified exponent.
         pub fn pow2Const(comptime exponent: u32) Self {
-            comptime {
-                return Self.fromInt(u8, 2).powToInt(exponent);
-            }
+            return Self.fromInt(u8, 2).powToInt(exponent);
         }
 
         /// Raise a field element to a general power.
