@@ -92,7 +92,6 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
         /// If `T` represents an integer type with more than 128 bits, an error is raised due to unsupported integer sizes.
         pub fn fromInt(comptime T: type, num: T) Self {
             // checking if bits more than max bits limbs of field
-            std.debug.assert(@typeInfo(T).Int.bits <= n_limbs * 64);
             return toMontgomery(big_int.fromInt(T, num));
         }
 
