@@ -688,6 +688,7 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
         /// The algorithm efficiently utilizes inline loops for performance optimization.
         /// Additionally, it supports modulus subtraction if the modulus has a spare bit.
         pub fn squareAssign(self: *Self) void {
+            @setEvalBranchQuota(10000);
             const MulBuffer = struct {
                 const S = @This();
 
