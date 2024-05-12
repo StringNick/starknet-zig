@@ -225,10 +225,12 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
         }
 
         pub fn toStdBigInt(self: Self, allocator: std.mem.Allocator) !std.math.big.int.Managed {
-            var val = try std.math.big.int.Managed.initCapacity(allocator, n_limbs);
+            // var val = try std.math.big.int.Managed.initCapacity(allocator, n_limbs);
+            // errdefer val.deinit();
+            var val = try std.math.big.int.Managed.initSet(allocator, self.toU256());
             errdefer val.deinit();
 
-            @memcpy(val.limbs, &self.toLeDigits());
+            // @memcpy(val.limbs, &self.toLeDigits());
 
             return val;
         }
