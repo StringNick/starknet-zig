@@ -11,12 +11,14 @@ pub const ECError = error{
 };
 
 const Felt252 = @import("starknet.zig").Felt252;
+const ALPHA = @import("../curve/curve_params.zig").ALPHA;
+const BETA = @import("../curve/curve_params.zig").BETA;
 
 /// Constant representing the alpha value in the elliptic curve.
-pub const ALPHA = Felt252.one();
+// pub const ALPHA = Felt252.one();
 
 /// Constant representing the beta value in the elliptic curve.
-pub const BETA = Felt252.fromInt(u256, 3141592653589793238462643383279502884197169399375105820974944592307816406665);
+// pub const BETA = Felt252.fromInt(u256, 3141592653589793238462643383279502884197169399375105820974944592307816406665);
 
 /// A type that represents a point (x,y) on an elliptic curve.
 pub const ECPoint = struct {
