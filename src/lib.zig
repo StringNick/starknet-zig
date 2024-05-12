@@ -1,6 +1,7 @@
 pub const curve = struct {
     pub usingnamespace @import("math/curve/short_weierstrass/affine.zig");
     pub usingnamespace @import("math/curve/short_weierstrass/projective.zig");
+    pub usingnamespace @import("math/fields/elliptic_curve.zig");
     pub usingnamespace @import("math/curve/short_weierstrass/projective_jacobian.zig");
     pub usingnamespace @import("math/curve/curve_params.zig");
 };
