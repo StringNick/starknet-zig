@@ -91,8 +91,7 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
         /// If `num` is negative, an assertion failure occurs.
         /// If `T` represents an integer type with more than 128 bits, an error is raised due to unsupported integer sizes.
         pub fn fromInt(comptime T: type, num: T) Self {
-            // checking if bits more than max bits limbs of field
-            return toMontgomery(big_int.fromInt(T, num));
+            return toMontgomery(big_int.fromInt(T, num).rem(&Modulus));
         }
 
         /// Generates a random field element within the finite field using a provided random number generator.
