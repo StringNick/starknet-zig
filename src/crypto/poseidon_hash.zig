@@ -139,7 +139,7 @@ pub const PoseidonHasher = struct {
     ///   partial S-box layer (false).
     pub fn roundComp(self: *Self, idx: usize, comptime full: bool) void {
         if (full) {
-            inline for (0..self.state.len) |i| {
+            inline for (0..3) |i| {
                 // AddRoundConstants.
                 self.state[i].addAssign(&poseidon_constants.POSEIDON_COMPRESSED_ROUND_CONSTS[idx + i]);
                 // SubWords.
