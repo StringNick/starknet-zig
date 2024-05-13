@@ -77,6 +77,14 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
         fe: big_int = .{},
 
         pub fn fromInt(comptime T: type, num: T) Self {
+            if (@typeInfo(T).Int.signedness == .signed) {
+                const val = @abs(num);
+                var res = fromInt(@TypeOf(val), val);
+                if (num < 0) res.negAssign();
+
+                return res;
+            }
+
             const integer = big_int.fromInt(T, num);
             return .{ .fe = montgomery.cios(n_limbs, integer, R2, Modulus, Inv) };
         }
