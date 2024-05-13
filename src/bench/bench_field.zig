@@ -8,7 +8,7 @@ test "benchmark field multiplication" {
     try benchmark(struct {
         // How many iterations to run each benchmark.
         // If not present then a default will be used.
-        pub const iterations = 100000;
+        pub const iterations = 1000000;
 
         var a = Felt252.fromInt(
             u256,

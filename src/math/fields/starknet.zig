@@ -26,6 +26,13 @@ test "Felt252: verify to std big int limbs equal" {
 }
 
 test "Felt252: fromU8 should return a field element from a u8" {
+    std.log.err("abaa {any}, {any}", .{ Felt252.fromInt2(u8, 255), Felt252.fromInt(u8, 255) });
+
+    try expectEqual(
+        @as(u256, std.math.maxInt(u8)),
+        Felt252.fromInt2(u8, std.math.maxInt(u8)).toU256(),
+    );
+
     try expectEqual(
         @as(u256, std.math.maxInt(u8)),
         Felt252.fromInt(u8, std.math.maxInt(u8)).toU256(),

@@ -1525,6 +1525,77 @@ pub fn bigInt(comptime N: usize) type {
             // Return the 2-adic valuation
             return twoAdicity;
         }
+
+        // pub fn square(self: *const Self) struct { Self, Self } {
+        //     var hi = Self.init([_]u64{0} ** N);
+        //     var lo = Self.init([_]u64{0} ** N);
+        //     // Compute products between a[i] and a[j] when i != j.
+        //     // The variable `index` below is the index of `lo` or
+        //     // `hi` to update
+        //     var i = N;
+        //     while (i > 1) {
+        //         i -= 1;
+        //         var c: u128 = 0;
+        //         var j = i;
+        //         while (j > 0) {
+        //             j -= 1;
+        //             const k = i + j;
+        //             if (k >= N - 1) {
+        //                 const index = k + 1 - N;
+        //                 const cs = @as(u128, lo.limbs[index]) + @as(u128, self.limbs[i]) * @as(u128, self.limbs[j]) + c;
+        //                 c = cs >> 64;
+        //                 lo.limbs[index] = @truncate(cs);
+        //             } else {
+        //                 const index = k + 1;
+        //                 const cs = @as(u128, hi.limbs[index]) + @as(u128, self.limbs[i]) * @as(u128, self.limbs[j]) + c;
+        //                 c = cs >> 64;
+        //                 hi.limbs[index] = @truncate(cs);
+        //             }
+        //         }
+        //         hi.limbs[i] = @truncate(c);
+        //     }
+
+        //     // All these terms should appear twice each,
+        //     // so we have to multiply what we got so far by two.
+        //     const carry = lo.limbs[0] >> 63;
+        //     lo.shlAssign(1);
+        //     hi.shlAssign(1);
+        //     hi.limbs[N - 1] |= carry;
+
+        //     // Add the only remaning terms, which are the squares a[i] * a[i].
+        //     // The variable `index` below is the index of `lo` or
+        //     // `hi` to update
+        //     var c: u128 = 0;
+        //     i = N;
+        //     while (i > 0) {
+        //         i -= 1;
+        //         if (N - 1 <= i * 2) {
+        //             const index = 2 * i + 1 - N;
+        //             const cs = @as(u128, lo.limbs[index]) + @as(u128, self.limbs[i]) * @as(u128, self.limbs[i]) + c;
+        //             c = cs >> 64;
+        //             lo.limbs[index] = @truncate(cs);
+        //         } else {
+        //             const index = 2 * i + 1;
+        //             const cs = @as(u128, hi.limbs[index]) + @as(u128, self.limbs[i]) * @as(u128, self.limbs[i]) + c;
+        //             c = cs >> 64;
+        //             hi.limbs[index] = @truncate(cs);
+        //         }
+        //         if (N - 1 < i * 2) {
+        //             const index = 2 * i - N;
+        //             const cs = @as(u128, lo.limbs[index]) + c;
+        //             c = cs >> 64;
+        //             lo.limbs[index] = @truncate(cs);
+        //         } else {
+        //             const index = 2 * i;
+        //             const cs = @as(u128, hi.limbs[index]) + c;
+        //             c = cs >> 64;
+        //             hi.limbs[index] = @truncate(cs);
+        //         }
+        //     }
+
+        //     std.debug.assert(c == 0);
+        //     return .{ hi, lo };
+        // }
     };
 }
 

@@ -8,6 +8,7 @@ pub const curve = struct {
 
 pub const fields = struct {
     pub usingnamespace @import("math/fields/fields.zig");
+    pub usingnamespace @import("math/fields/montgomery.zig");
     pub usingnamespace @import("math/fields/starknet.zig");
     pub usingnamespace @import("math/fields/arithmetic.zig");
     pub usingnamespace @import("math/fields/biginteger.zig");
