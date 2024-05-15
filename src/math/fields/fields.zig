@@ -76,7 +76,7 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
         /// This field element is a member of the finite field and is represented by a big integer with a specified number of limbs.
         fe: big_int = .{},
 
-        pub fn fromInt(comptime T: type, num: T) Self {
+        pub fn fromInt2(comptime T: type, num: T) Self {
             if (@typeInfo(T).Int.signedness == .signed) {
                 const val = @abs(num);
                 var res = fromInt(@TypeOf(val), val);
@@ -85,8 +85,7 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
                 return res;
             }
 
-            const integer = big_int.fromInt(T, num);
-            return .{ .fe = montgomery.cios(n_limbs, integer, R2, Modulus, Inv) };
+            return .{ .fe = montgomery.cios(n_limbs, big_int.fromInt(T, num), R2, Modulus, Inv) };
         }
 
         /// Creates a `Field` element from an integer value.
@@ -104,7 +103,7 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
         /// Errors:
         /// If `num` is negative, an assertion failure occurs.
         /// If `T` represents an integer type with more than 128 bits, an error is raised due to unsupported integer sizes.
-        pub fn fromInt2(comptime T: type, num: T) Self {
+        pub fn fromInt(comptime T: type, num: T) Self {
             if (@typeInfo(T).Int.signedness == .signed) {
                 const val = @abs(num);
                 var res = fromInt(@TypeOf(val), val);
@@ -113,7 +112,7 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
                 return res;
             }
 
-            return toMontgomery(big_int.fromInt(T, num).rem(&Modulus));
+            return toMontgomery(big_int.fromInt(T, if (@typeInfo(T).Int.bits < 256) num else num % modulo));
         }
 
         /// Generates a random field element within the finite field using a provided random number generator.

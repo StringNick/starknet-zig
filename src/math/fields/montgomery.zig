@@ -16,21 +16,18 @@ pub fn cios(
     q: bigInteger(N),
     mu: u64,
 ) bigInteger(N) {
-    var t = [_]u64{0} ** N;
+    var result: bigInteger(N) = undefined;
+    var t = &result.limbs;
     var t_extra = [_]u64{0} ** 2;
-    var i = N;
 
-    while (i > 0) {
-        i -= 1;
+    inline for (0..N) |i| {
         // C := 0
         var c: u128 = 0;
 
         // for j=N-1 to 0
         //    (C,t[j]) := t[j] + a[j]*b[i] + C
         var cs: u128 = undefined;
-        var j: usize = N;
-        while (j > 0) {
-            j -= 1;
+        inline for (0..N) |j| {
             cs = t[j] + (@as(u128, a.limbs[j])) * (@as(u128, b.limbs[i])) + c;
             c = cs >> 64;
             t[j] = @truncate(cs);
@@ -42,30 +39,27 @@ pub fn cios(
         t_extra[1] = @truncate(cs);
 
         // m := t[N-1]*q'[N-1] mod D
-        const m = ((@as(u128, t[N - 1]) * @as(u128, mu)) << 64) >> 64;
+        const m = ((@as(u128, t[0]) * @as(u128, mu)) << 64) >> 64;
 
         // (C,_) := t[N-1] + m*q[N-1]
-        c = (@as(u128, t[N - 1]) + m * (@as(u128, q.limbs[N - 1]))) >> 64;
+        c = (@as(u128, t[0]) + m * (@as(u128, q.limbs[0]))) >> 64;
 
         // for j=N-1 to 1
         //    (C,t[j+1]) := t[j] + m*q[j] + C
-        j = N - 1;
-        while (j > 0) {
-            j -= 1;
+        inline for (1..N) |j| {
             cs = @as(u128, t[j]) + m * @as(u128, q.limbs[j]) + c;
             c = cs >> 64;
-            t[j + 1] = @truncate((cs << 64) >> 64);
+            t[j - 1] = @truncate((cs << 64) >> 64);
         }
 
         // (C,t[0]) := t_extra[1] + C
         cs = @as(u128, t_extra[1]) + c;
         c = cs >> 64;
-        t[0] = @truncate((cs << 64) >> 64);
+        t[N - 1] = @truncate((cs << 64) >> 64);
 
         // t_extra[1] := t_extra[0] + C
         t_extra[1] = t_extra[0] + @as(u64, @truncate(c));
     }
-    var result = bigInteger(N).init(t);
 
     const overflow = t_extra[1] > 0;
 
@@ -104,7 +98,7 @@ pub fn ciosOptimizedForModuliWithOneSpareBit(
         var j: usize = N;
         while (j > 0) {
             j -= 1;
-            cs = @as(u128, t[j]) + @as(u128, a.limbs[j]) * @as(u128, b.limbs[i]) + c;
+            cs = @as(u128, t[j]) + @as(u128, a.limbs[N - j - 1]) * @as(u128, b.limbs[N - i - 1]) + c;
             c = cs >> 64;
             t[j] = @truncate(cs);
         }
@@ -115,14 +109,14 @@ pub fn ciosOptimizedForModuliWithOneSpareBit(
         const m = ((@as(u128, t[N - 1]) * @as(u128, mu)) << 64) >> 64;
 
         // (C,_) := t[0] + m*q[0]
-        c = (@as(u128, t[N - 1]) + m * @as(u128, q.limbs[N - 1])) >> 64;
+        c = (@as(u128, t[N - 1]) + m * @as(u128, q.limbs[0])) >> 64;
 
         // for j=N-1 to 1
         //    (C,t[j+1]) := t[j] + m*q[j] + C
         j = N - 1;
         while (j > 0) {
             j -= 1;
-            cs = @as(u128, t[j]) + m * @as(u128, q.limbs[j]) + c;
+            cs = @as(u128, t[j]) + m * @as(u128, q.limbs[N - j - 1]) + c;
             c = cs >> 64;
             t[j + 1] = @truncate((cs << 64) >> 64);
         }
@@ -131,12 +125,26 @@ pub fn ciosOptimizedForModuliWithOneSpareBit(
         cs = @as(u128, t_extra) + c;
         t[0] = @truncate((cs << 64) >> 64);
     }
+
+    std.mem.reverse(u64, &t);
     var result = bigInteger(N).init(t);
 
     if (q.cmp(&result).compare(.lte)) {
         _ = result.subWithBorrowAssign(&q);
     }
     return result;
+}
+
+test "Montgomery: from and to montgomery equal" {
+    const Felt252 = @import("starknet.zig").Felt252;
+
+    const expected = bigInteger(4).fromInt(u256, 255);
+
+    const montg = cios(4, expected, Felt252.R2, Felt252.Modulus, Felt252.Inv);
+
+    const from_montg = cios(4, montg, bigInteger(4).fromInt(u8, 1), Felt252.Modulus, Felt252.Inv);
+
+    try std.testing.expectEqual(expected, from_montg);
 }
 
 test "cios vs cios optimized" {

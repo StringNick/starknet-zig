@@ -90,23 +90,34 @@ pub fn benchmark(comptime B: type) !void {
     var timer = try std.time.Timer.start();
     inline for (functions) |def| {
         inline for (args, 0..) |arg, index| {
-            timer.reset();
+            var runtime_mean: f128 = 0;
+            var min: u64 = std.math.maxInt(u64) - 1;
+            var max: u64 = 0;
 
             for (0..iterations) |_| {
-                _ = switch (@TypeOf(arg)) {
+                timer.reset();
+
+                std.mem.doNotOptimizeAway(switch (@TypeOf(arg)) {
                     void => @field(B, def.name)(),
                     else => @field(B, def.name)(arg),
-                };
+                });
+
+                const tm = timer.read();
+                if (tm > max) max = tm;
+                if (tm < min) min = tm;
+
+                runtime_mean += @as(f128, @floatFromInt(tm));
             }
 
-            const runtime_mean: f64 = @as(f64, @floatFromInt(timer.read())) / @as(f64, @floatFromInt(iterations));
+            runtime_mean = runtime_mean / @as(f128, @floatFromInt(iterations));
+
             const variance = 0;
 
             if (index < arg_names.len) {
                 const arg_name = formatter("{s}", arg_names[index]);
-                _ = try printBenchmark(stderr, min_width, def.name, arg_name, iterations, 0, 0, variance, runtime_mean);
+                _ = try printBenchmark(stderr, min_width, def.name, arg_name, iterations, min, max, variance, runtime_mean);
             } else {
-                _ = try printBenchmark(stderr, min_width, def.name, index, iterations, 0, 0, variance, runtime_mean);
+                _ = try printBenchmark(stderr, min_width, def.name, index, iterations, min, max, variance, runtime_mean);
             }
             try stderr.writeAll("\n");
             try stderr.context.flush();
