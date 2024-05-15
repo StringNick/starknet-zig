@@ -76,6 +76,7 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
         /// This field element is a member of the finite field and is represented by a big integer with a specified number of limbs.
         fe: big_int = .{},
 
+        // TODO remove
         pub fn fromInt2(comptime T: type, num: T) Self {
             if (@typeInfo(T).Int.signedness == .signed) {
                 const val = @abs(num);
@@ -589,7 +590,7 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
                 @memcpy(&self.fe.limbs, &r);
 
                 // Perform modulus subtraction if needed
-                self.subModulusAssign();
+                // self.subModulusAssign();
             }
         }
 
