@@ -587,10 +587,11 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
                 }
 
                 // Store the result back into the original object
-                @memcpy(&self.fe.limbs, &r);
+                self.fe.limbs = r;
+                // @memcpy(&self.fe.limbs, &r);
 
                 // Perform modulus subtraction if needed
-                // self.subModulusAssign();
+                self.subModulusAssign();
             }
         }
 
