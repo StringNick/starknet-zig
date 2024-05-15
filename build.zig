@@ -46,7 +46,7 @@ pub fn build(b: *std.Build) void {
     // **************************************************************
     // expose ziggy-starkdust as a module
     _ = b.addModule(package_name, .{
-        .root_source_file = .{ .path = package_path },
+        .root_source_file = b.path(package_path),
         .imports = deps,
     });
 
@@ -57,7 +57,7 @@ pub fn build(b: *std.Build) void {
         .name = "ziggy-starkdust",
         // In this case the main source file is merely a path, however, in more
         // complicated build scripts, this could be a generated file.
-        .root_source_file = .{ .path = "src/lib.zig" },
+        .root_source_file = b.path("src/lib.zig"),
         .target = target,
         .optimize = optimize,
     });
@@ -78,7 +78,7 @@ pub fn build(b: *std.Build) void {
         .name = "ziggy-starkdust",
         // In this case the main source file is merely a path, however, in more
         // complicated build scripts, this could be a generated file.
-        .root_source_file = .{ .path = "src/main.zig" },
+        .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize,
     });
@@ -135,7 +135,7 @@ pub fn build(b: *std.Build) void {
     // Creates a step for unit testing. This only builds the test executable
     // but does not run it.
     const unit_tests = b.addTest(.{
-        .root_source_file = .{ .path = "src/tests.zig" },
+        .root_source_file = b.path("src/tests.zig"),
         .target = target,
         .optimize = optimize,
         .filter = test_filter,
@@ -167,7 +167,7 @@ fn pedersen_table_gen(
 ) void {
     const binary = b.addExecutable(.{
         .name = "pedersen_table_gen",
-        .root_source_file = .{ .path = "src/pedersen_table_gen.zig" },
+        .root_source_file = b.path("src/pedersen_table_gen.zig"),
         .target = target,
         .optimize = mode,
     });
@@ -186,7 +186,7 @@ fn poseidon_consts_gen(
 ) void {
     const binary = b.addExecutable(.{
         .name = "poseidon_consts_gen",
-        .root_source_file = .{ .path = "src/poseidon_consts_gen.zig" },
+        .root_source_file = b.path("src/poseidon_consts_gen.zig"),
         .target = target,
         .optimize = mode,
     });
