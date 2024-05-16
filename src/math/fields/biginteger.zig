@@ -670,16 +670,25 @@ pub fn bigInt(comptime N: usize) type {
         ///   - The comparison result is returned as an enum value indicating the relative order.
         ///   - This function can be used to determine the relative order of big integers for sorting or comparison purposes.
         pub fn cmp(self: *const Self, rhs: *const Self) std.math.Order {
-            // Obtain pointers to the limbs of the big integers
-            var a = self.limbs;
-            var b = rhs.limbs;
+            inline for (0..N) |i| {
+                if (self.limbs[N - i - 1] > rhs.limbs[N - i - 1]) {
+                    return .gt;
+                } else if (self.limbs[N - i - 1] < rhs.limbs[N - i - 1]) {
+                    return .lt;
+                }
+            }
 
-            // Reverse the order of limbs from little-endian to big-endian
-            _ = std.mem.reverse(u64, a[0..]);
-            _ = std.mem.reverse(u64, b[0..]);
+            return .eq;
+            // // Obtain pointers to the limbs of the big integers
+            // var a = self.limbs;
+            // var b = rhs.limbs;
 
-            // Compare the big integers using byte-wise comparison
-            return std.mem.order(u64, &a, &b);
+            // // Reverse the order of limbs from little-endian to big-endian
+            // _ = std.mem.reverse(u64, a[0..]);
+            // _ = std.mem.reverse(u64, b[0..]);
+
+            // // Compare the big integers using byte-wise comparison
+            // return std.mem.order(u64, &a, &b);
         }
 
         /// Checks if a big integer is less than another big integer.
