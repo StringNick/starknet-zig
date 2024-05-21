@@ -460,7 +460,7 @@ pub fn bigInt(comptime N: usize) type {
         ///   - Subtraction with borrow is performed using the `subWithBorrowAssign` function.
         ///   - The result of the subtraction operation and the borrow flag are returned as a tuple.
         ///   - The borrow flag can be used to detect underflow during subtraction operations.
-        pub fn subWithBorrow(self: *const Self, rhs: *const Self) std.meta.Tuple(&.{ Self, bool }) {
+        pub fn subWithBorrow(self: *const Self, rhs: *const Self) struct { Self, bool } {
             // Dereference the pointer to obtain the actual big integer
             var a = self.*;
             // Perform subtraction with borrow and obtain the borrow flag
@@ -1043,7 +1043,7 @@ pub fn bigInt(comptime N: usize) type {
         ///
         /// Returns:
         ///   - A new instance of the `BigInt` struct representing the result of the bitwise left shift operation.
-        pub fn shl(self: *const Self, rhs: u32) Self {
+        pub fn shl(self: *const Self, rhs: usize) Self {
             // Dereference the pointer to obtain the actual big integer.
             var a = self.*;
             // Call the shlAssign function to perform the bitwise left shift operation in place.
@@ -1072,7 +1072,7 @@ pub fn bigInt(comptime N: usize) type {
         ///     the big integer is set to zero and the function returns early.
         ///   - The shift is performed by shifting each limb for one position to the left. If a shift of more than 64 positions is required,
         ///     multiple iterations are performed until the remaining shift is less than 64.
-        pub fn shlAssign(self: *Self, rhs: u32) void {
+        pub fn shlAssign(self: *Self, rhs: usize) void {
             // Check for overflow.
             // If the number of positions to shift is greater than or equal to the total bit width of the big integer,
             // set the big integer to zero and return early.
@@ -1387,7 +1387,7 @@ pub fn bigInt(comptime N: usize) type {
             var qt: Self = .{};
 
             // Calculate the number of bits to shift the divisor
-            var bd: u32 = @intCast(N * @bitSizeOf(u64) - mb);
+            var bd: usize = N * @bitSizeOf(u64) - mb;
 
             // Shift the divisor to align with the most significant bit of the remainder
             var c = rhs.shl(bd);
@@ -1395,16 +1395,16 @@ pub fn bigInt(comptime N: usize) type {
             // Perform long division algorithm
             while (true) {
                 // Compute the difference between the remainder and the shifted divisor
-                const rb = rm.subWithBorrow(&c);
+                const r, const b = rm.subWithBorrow(&c);
 
                 // Determine whether to subtract or not based on the borrow
-                const choice = ConstChoice.initFromBool(rb[1]);
+                // const choice = ConstChoice.initFromBool(rb[1]);
 
                 // Update the remainder based on the choice
-                rm = rb[0].select(&rm, choice);
+                rm = if (b) rm else r;
 
                 // Update the quotient based on the choice
-                qt = qt.bitOr(&comptime Self.one()).select(&qt, choice);
+                qt = if (b) qt else qt.bitOr(&comptime Self.one());
 
                 // Check if the division process is complete
                 if (bd == 0) break;

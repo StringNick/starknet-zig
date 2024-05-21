@@ -11,7 +11,7 @@ test "benchmark field multiplication" {
         // If not present then a default will be used.
         pub const iterations = 100000;
 
-        var a = Felt252.fromInt(
+        const a = Felt252.fromInt(
             u256,
             0x6606d7dccf23a0f61182da8d1149497f01b909036384bedb3e4c3284e2f2c1e1,
         );
@@ -19,6 +19,10 @@ test "benchmark field multiplication" {
             u256,
             0x4cd366c0feadabcd6c61a395f6d9f91484ac4e51c3f8aede6c0ab49e2a55446a,
         );
+
+        pub fn bench_div_rem() void {
+            _, _ = a.divRem(b) catch unreachable;
+        }
 
         pub fn bench_from2() void {
             for (0..100) |_| {
