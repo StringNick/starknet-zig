@@ -58,33 +58,8 @@ pub fn bigInt(comptime N: usize) type {
         pub fn fromInt(comptime T: type, num: T) Self {
             std.debug.assert(num >= 0);
 
-            // Switch based on the size of the integer value
-            return switch (@typeInfo(T).Int.bits) {
-                // For integers up to 63 bits, directly initialize the field element
-                0...63 => .{ .limbs = .{ @intCast(num), 0, 0, 0 } },
-                // For 64-bit integers, initialize the field element directly
-                64 => .{ .limbs = .{ num, 0, 0, 0 } },
-                // For integers from 65 to 128 bits, perform truncation and division
-                65...128 => .{
-                    .limbs = .{
-                        @truncate(
-                            @mod(
-                                num,
-                                @as(u128, @intCast(std.math.maxInt(u64))) + 1,
-                            ),
-                        ),
-                        @truncate(@divTrunc(num, @as(u128, @intCast(std.math.maxInt(u64))) + 1)),
-                        0,
-                        0,
-                    },
-                },
-                // For larger integers, convert to bytes and then initialize the field element
-                else => blk: {
-                    var lbe = [_]u8{0} ** (N * @sizeOf(u64));
-                    std.mem.writeInt(T, &lbe, num, .little);
-                    break :blk Self.fromBytesLe(lbe);
-                },
-            };
+            const res: std.meta.Int(.unsigned, N * @bitSizeOf(u64)) = @intCast(num);
+            return .{ .limbs = @bitCast(res) };
         }
 
         /// Convert the field element to a u256 integer.
@@ -841,25 +816,8 @@ pub fn bigInt(comptime N: usize) type {
         ///   - The resulting byte representation is little-endian, with the least significant bytes appearing first.
         ///   - Inline loops are used for performance optimization.
         ///   - The function returns an array of bytes representing the byte representation of the big integer.
-        pub fn toBytesLe(self: *const Self) [@sizeOf(u256)]u8 {
-            // Initialize an array to hold the byte representation
-            var buf: [@sizeOf(u256)]u8 = undefined;
-
-            // Iterate through each limb of the big integer
-            inline for (0..N) |i| {
-                // Calculate the starting index for the current limb in the little-endian byte representation
-                const idx_bytes = i * 8;
-                // Write the current limb to the byte representation array using little-endian byte order
-                std.mem.writeInt(
-                    u64,
-                    buf[idx_bytes .. idx_bytes + 8],
-                    self.limbs[i],
-                    .little,
-                );
-            }
-
-            // Return the little-endian byte representation of the big integer
-            return buf;
+        pub fn toBytesLe(self: Self) [@sizeOf(u64) * N]u8 {
+            return @bitCast(self.limbs);
         }
 
         /// Converts a big integer to a big-endian byte representation.
@@ -901,6 +859,10 @@ pub fn bigInt(comptime N: usize) type {
             return buf;
         }
 
+        pub fn fromBytesLe(bytes: [N * @sizeOf(u64)]u8) Self {
+            return .{ .limbs = @bitCast(bytes) };
+        }
+
         /// Creates a big integer from a byte array in little-endian order.
         ///
         /// This function constructs a big integer from a byte array by converting each set of 8 bytes
@@ -912,7 +874,7 @@ pub fn bigInt(comptime N: usize) type {
         ///
         /// Returns:
         ///   - A big integer constructed from the provided byte array.
-        pub fn fromBytesLe(bytes: [N * @sizeOf(u64)]u8) Self {
+        pub fn fromBytesLe2(bytes: [N * @sizeOf(u64)]u8) Self {
             // Initialize a new big integer with all limbs set to zero.
             var r: Self = .{};
 

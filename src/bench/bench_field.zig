@@ -20,6 +20,19 @@ test "benchmark field multiplication" {
             0x4cd366c0feadabcd6c61a395f6d9f91484ac4e51c3f8aede6c0ab49e2a55446a,
         );
 
+        const v = std.mem.toBytes(@as(u256, 0x4cd366c0feadabcd6c61a395f6d9f91484ac4e51c3f8aede6c0ab49e2a55446a));
+
+        pub fn fromBytesLe() void {
+            _ = bigInt(4).fromBytesLe(v);
+        }
+        pub fn fromBytesLe2() void {
+            _ = bigInt(4).fromBytesLe2(v);
+        }
+
+        pub fn toBytesLe() void {
+            _ = a.toBytesLe();
+        }
+
         pub fn bench_div_rem() void {
             _, _ = a.divRem(b) catch unreachable;
         }
