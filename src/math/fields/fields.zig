@@ -77,7 +77,7 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
         fe: big_int = .{},
 
         // TODO remove
-        pub fn fromInt(comptime T: type, num: T) Self {
+        pub fn fromInt2(comptime T: type, num: T) Self {
             if (@typeInfo(T).Int.signedness == .signed) {
                 const val = @abs(num);
                 var res = fromInt(@TypeOf(val), val);
@@ -104,7 +104,7 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
         /// Errors:
         /// If `num` is negative, an assertion failure occurs.
         /// If `T` represents an integer type with more than 128 bits, an error is raised due to unsupported integer sizes.
-        pub fn fromInt2(comptime T: type, num: T) Self {
+        pub fn fromInt(comptime T: type, num: T) Self {
             if (@typeInfo(T).Int.signedness == .signed) {
                 const val = @abs(num);
                 var res = fromInt(@TypeOf(val), val);
