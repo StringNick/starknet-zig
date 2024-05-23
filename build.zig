@@ -61,6 +61,11 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+
+    lib.addIncludePath(b.path("./src/math/fields/prime/"));
+    lib.addObjectFile(b.path("./src/math/fields/prime/libprime.a"));
+    lib.linkSystemLibrary("unwind");
+
     // Add dependency modules to the library.
     for (deps) |mod| lib.root_module.addImport(
         mod.name,
@@ -82,6 +87,11 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+
+    exe.addIncludePath(b.path("./src/math/fields/prime/"));
+    exe.addObjectFile(b.path("./src/math/fields/prime/libprime.a"));
+    exe.linkSystemLibrary("unwind");
+
     // Add dependency modules to the executable.
     for (deps) |mod| exe.root_module.addImport(
         mod.name,
@@ -140,6 +150,10 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
         .filter = test_filter,
     });
+
+    unit_tests.addIncludePath(b.path("./src/math/fields/prime/"));
+    unit_tests.addObjectFile(b.path("./src/math/fields/prime/libprime.a"));
+    unit_tests.linkSystemLibrary("unwind");
 
     // Add dependency modules to the tests.
     for (deps) |mod| unit_tests.root_module.addImport(

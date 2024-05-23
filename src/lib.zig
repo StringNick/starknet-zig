@@ -12,6 +12,7 @@ pub const fields = struct {
     pub usingnamespace @import("math/fields/starknet.zig");
     pub usingnamespace @import("math/fields/arithmetic.zig");
     pub usingnamespace @import("math/fields/biginteger.zig");
+    pub usingnamespace @import("math/fields/prime.zig");
     pub usingnamespace @import("math/fields/const_choice.zig");
 };
 
