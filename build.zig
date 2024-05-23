@@ -52,7 +52,7 @@ pub fn build(b: *std.Build) void {
 
     ziggy_starkdust_mod.addIncludePath(b.path("./src/math/fields/prime/"));
     ziggy_starkdust_mod.addObjectFile(b.path("./src/math/fields/prime/libprime.a"));
-    ziggy_starkdust_mod.linkSystemLibrary("unwind");
+    ziggy_starkdust_mod.linkSystemLibrary("unwind", .{});
 
     // **************************************************************
     // *              ZIGGY STARKDUST AS A LIBRARY                        *
