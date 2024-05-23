@@ -45,10 +45,14 @@ pub fn build(b: *std.Build) void {
     // *               ZIGGY STARKDUST AS A MODULE                        *
     // **************************************************************
     // expose ziggy-starkdust as a module
-    _ = b.addModule(package_name, .{
+    const ziggy_starkdust_mod = b.addModule(package_name, .{
         .root_source_file = b.path(package_path),
         .imports = deps,
     });
+
+    ziggy_starkdust_mod.addIncludePath(b.path("./src/math/fields/prime/"));
+    ziggy_starkdust_mod.addObjectFile(b.path("./src/math/fields/prime/libprime.a"));
+    ziggy_starkdust_mod.linkSystemLibrary("unwind");
 
     // **************************************************************
     // *              ZIGGY STARKDUST AS A LIBRARY                        *
