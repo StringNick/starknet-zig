@@ -48,11 +48,13 @@ pub fn build(b: *std.Build) void {
     const ziggy_starkdust_mod = b.addModule(package_name, .{
         .root_source_file = b.path(package_path),
         .imports = deps,
+        .optimize = optimize,
+        .omit_frame_pointer = if (optimize == .ReleaseFast) true else false,
+        .strip = true,
     });
 
     ziggy_starkdust_mod.addIncludePath(b.path("./src/math/fields/prime/"));
     ziggy_starkdust_mod.addObjectFile(b.path("./src/math/fields/prime/libprime.a"));
-    // ziggy_starkdust_mod.linkSystemLibrary("unwind", .{});
 
     // **************************************************************
     // *              ZIGGY STARKDUST AS A LIBRARY                        *
@@ -64,6 +66,8 @@ pub fn build(b: *std.Build) void {
         .root_source_file = b.path("src/lib.zig"),
         .target = target,
         .optimize = optimize,
+        .omit_frame_pointer = if (optimize == .ReleaseFast) true else false,
+        .strip = true,
     });
 
     lib.addIncludePath(b.path("./src/math/fields/prime/"));
@@ -90,6 +94,8 @@ pub fn build(b: *std.Build) void {
         .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize,
+        .omit_frame_pointer = if (optimize == .ReleaseFast) true else false,
+        .strip = true,
     });
 
     exe.addIncludePath(b.path("./src/math/fields/prime/"));
@@ -153,6 +159,8 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
         .filter = test_filter,
+        .omit_frame_pointer = if (optimize == .ReleaseFast) true else false,
+        .strip = true,
     });
 
     unit_tests.addIncludePath(b.path("./src/math/fields/prime/"));

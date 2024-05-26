@@ -1335,7 +1335,7 @@ pub fn bigInt(comptime N: usize) type {
         /// Remarks:
         ///   - The function assumes that the divisor big integer is non-zero.
         ///   - The division algorithm used is a variant of long division.
-        pub fn divRem(self: *const Self, rhs: *const Self) std.meta.Tuple(&.{ Self, Self }) {
+        pub fn divRem(self: *const Self, rhs: *const Self) struct { Self, Self } {
             // Ensure that the divisor is not zero
             std.debug.assert(!rhs.isZero());
 
