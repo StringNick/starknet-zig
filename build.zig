@@ -49,8 +49,8 @@ pub fn build(b: *std.Build) void {
         .root_source_file = b.path(package_path),
         .imports = deps,
         .optimize = optimize,
-        .omit_frame_pointer = if (optimize == .ReleaseFast) true else false,
-        .strip = true,
+        .omit_frame_pointer = if (optimize == .ReleaseFast) false else false,
+        .strip = false,
     });
 
     ziggy_starkdust_mod.addIncludePath(b.path("./src/math/fields/prime/"));
