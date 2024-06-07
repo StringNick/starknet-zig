@@ -8,10 +8,5 @@
         "LICENSE",
         "README.md",
     },
-    .dependencies = .{
-        .@"zig-cli" = .{
-            .url = "https://github.com/sam701/zig-cli/archive/refs/heads/main.tar.gz",
-            .hash = "1220c008492d9460c3be2b209600a948181e6efb3bf0d79a1633def499632e708f4b",
-        },
-    },
+    .dependencies = .{},
 }

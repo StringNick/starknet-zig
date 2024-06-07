@@ -22,13 +22,13 @@ test "benchmark field multiplication" {
 
         const v = std.mem.toBytes(@as(u256, 0x4cd366c0feadabcd6c61a395f6d9f91484ac4e51c3f8aede6c0ab49e2a55446a));
 
-        pub fn modFloor() void {
-            _ = a.modFloor(b);
-        }
         pub fn modFloor2() void {
             _ = a.modFloor2(b);
         }
 
+        pub fn modFloor() void {
+            _ = a.modFloor(b);
+        }
         pub fn fromBytesLe() void {
             _ = bigInt(4).fromBytesLe(v);
         }
@@ -45,6 +45,9 @@ test "benchmark field multiplication" {
 
         pub fn bench_div_rem() void {
             _, _ = a.divRem(b);
+        }
+        pub fn bench_div_rem2() void {
+            _, _ = a.divRem2(b);
         }
 
         pub fn bench_from2() void {

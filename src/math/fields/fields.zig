@@ -1157,21 +1157,34 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
             return self.mul(&(den.inverse() orelse return FieldError.DivisionByZero));
         }
 
-        pub fn modFloor(self: Self, den: Self) Self {
+        pub fn modFloor2(self: Self, den: Self) Self {
             _, const rem = self.divRem(den);
             return rem;
         }
 
-        pub fn modFloor2(self: Self, den: Self) Self {
-            return Self.toMontgomery(big_int.fromInt(u256, @rem(self.toU256(), den.toU256())));
+        pub fn modFloor(self: Self, den: Self) Self {
+            return Self.toMontgomery(big_int.fromInt(u256, @mod(self.toU256(), den.toU256())));
         }
 
         // TODO: make desc
-        pub fn divRem(self: Self, den: Self) struct { Self, Self } {
+        pub fn divRem2(self: Self, den: Self) struct { Self, Self } {
             const q, const r = self.toBigInt().divRem(&den.toBigInt());
             return .{
                 Self.toMontgomery(q),
                 Self.toMontgomery(r),
+            };
+        }
+
+        pub fn divRem(self: Self, den: Self) struct { Self, Self } {
+            const s = self.toU256();
+            const d = den.toU256();
+            const q, const r = .{
+                @divFloor(s, d),
+                @mod(s, d),
+            };
+            return .{
+                Self.toMontgomery(big_int.fromInt(u256, q)),
+                Self.toMontgomery(big_int.fromInt(u256, r)),
             };
         }
 

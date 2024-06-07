@@ -4,12 +4,7 @@ const package_name = "ziggy-starkdust";
 const package_path = "src/lib.zig";
 
 // List of external dependencies that this package requires.
-const external_dependencies = [_]build_helpers.Dependency{
-    .{
-        .name = "zig-cli",
-        .module_name = "zig-cli",
-    },
-};
+const external_dependencies = [_]build_helpers.Dependency{};
 
 // Although this function looks imperative, note that its job is to
 // declaratively construct a build graph that will be executed by an external
