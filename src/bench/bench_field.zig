@@ -11,7 +11,7 @@ test "benchmark field multiplication" {
     try benchmark(struct {
         // How many iterations to run each benchmark.
         // If not present then a default will be used.
-        pub const iterations = 1;
+        pub const iterations = 1000;
 
         const a = Felt252.fromInt(
             u256,
@@ -39,6 +39,7 @@ test "benchmark field multiplication" {
         pub fn modFloor() void {
             _ = a.modFloor(b);
         }
+
         pub fn fromBytesLe() void {
             _ = bigInt(4).fromBytesLe(v);
         }

@@ -102,20 +102,20 @@ pub fn powmod(comptime T: type, base: T, exponent: T, modulus: T) !T {
     if (exponent == 2) return mulmod(T, base, base, modulus) catch unreachable;
     // zig fmt: on
 
-    var result: T = 1;
+    const Field = std.crypto.ff.Modulus(@bitSizeOf(T));
 
-    // TODO Replace with `var b, var e, const m = .{ base, exponent, modulus };`
-    var b = base;
-    var e = exponent;
-    const m = modulus;
-    while (e != 0) : (e >>= 1) {
-        if (e & 1 == 1) {
-            result = mulmod(T, result, b, m) catch unreachable;
-        }
-        b = mulmod(T, b, b, m) catch unreachable;
-    }
+    var ff = try Field.fromPrimitive(T, modulus);
 
-    return result;
+    const b = try Field.Fe.fromPrimitive(T, ff, base);
+
+    const e = try Field.Fe.fromPrimitive(T, ff, exponent);
+
+    const res = try ff.pow(
+        b,
+        e,
+    );
+
+    return try res.toPrimitive(T);
 }
 
 fn isSprp(comptime T: type, self: T, base: T) bool {
