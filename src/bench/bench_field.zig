@@ -28,6 +28,12 @@ test "benchmark field multiplication" {
             const c = a.mul(&b);
             _ = c; // autofix
         }
+
+        pub fn benchAdd() void {
+            const c = a.add(&b);
+            _ = c; // autofix
+        }
+
         pub fn benchMul2() void {
             const c = a.mul(&b);
             _ = c; // autofix

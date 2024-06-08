@@ -512,8 +512,8 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
         /// This function is evaluated at compile time to determine the presence of a spare bit in the modulus.
         /// It ensures that the check is performed statically during compilation.
         pub fn modulusHasSpareBit() bool {
+            // Check if the highest bit of the modulus is zero
             comptime {
-                // Check if the highest bit of the modulus is zero
                 return Modulus.limbs[n_limbs - 1] >> 63 == 0;
             }
         }
@@ -529,7 +529,7 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
         ///
         /// # Returns:
         /// A new field element representing the result of the multiplication.
-        pub fn mul(self: *const Self, rhs: *const Self) Self {
+        pub fn mul2(self: *const Self, rhs: *const Self) Self {
             // Dereference the pointer to obtain the actual field element
             var a = self.*;
             // Call the `mulAssign` method to perform the multiplication in place
@@ -538,11 +538,11 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
             return a;
         }
 
-        pub fn mul2(self: *const Self, rhs: *const Self) Self {
+        pub fn mul(self: *const Self, rhs: *const Self) Self {
             // Dereference the pointer to obtain the actual field element
 
-            if (Self.modulusHasSpareBit()) {
-                return .{ .fe = montgomery.ciosOptimizedForModuliWithOneSpareBit(4, &self.fe, &rhs.fe, &Modulus, Inv) };
+            if (comptime modulusHasSpareBit()) {
+                return .{ .fe = montgomery.ciosOptimizedForModuliWithOneSpareBit(n_limbs, &self.fe, &rhs.fe, &Modulus, Inv) };
             } else {
                 return .{ .fe = montgomery.cios(4, &self.fe, &rhs.fe, &Modulus, Inv) };
             }
