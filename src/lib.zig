@@ -14,6 +14,7 @@ pub const fields = struct {
     pub usingnamespace @import("math/fields/biginteger.zig");
     pub usingnamespace @import("math/fields/prime.zig");
     pub usingnamespace @import("math/fields/const_choice.zig");
+    pub usingnamespace @import("math/numprime/prime.zig");
 };
 
 pub const bench = struct {

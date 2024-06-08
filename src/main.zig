@@ -5,6 +5,7 @@ const builtin = @import("builtin");
 // Local imports.
 const customlogFn = @import("utils/log.zig").logFn;
 const Felt252 = @import("math/fields/starknet.zig").Felt252;
+const isPrime2 = @import("math/numprime/prime.zig").isPrime;
 
 // *****************************************************************************
 // *                     GLOBAL CONFIGURATION                                  *
@@ -19,17 +20,21 @@ pub const std_options = .{
 };
 
 pub fn main() !void {
-    std.log.debug("starknet-zig\n", .{});
-    std.debug.print(
-        \\Let's add two field elements together.
-        \\We will use the Starknet prime field 0x800000000000011000000000000000000000000000000000000000000000001.
-        \\We will add 0x800000000000011000000000000000000000000000000000000000000000000 and 0x4.
-        \\The result should be 3.
-    , .{});
-    const a = Felt252.fromInt(u256, 0x800000000000011000000000000000000000000000000000000000000000000);
-    const b = Felt252.fromInt(u256, 0x4);
-    const c = a.add(&b);
-    std.debug.print("\nResult: {}\n", .{c.toU256()});
+    for (0..TEST_ITERATIONS) |_| {
+        _ = try isPrime2(u256, null, 1489313108020924784844819367773615431304754137524579622245743070945963);
+    }
+    std.log.debug("done", .{});
+    // std.log.debug("starknet-zig\n", .{});
+    // std.debug.print(
+    //     \\Let's add two field elements together.
+    //     \\We will use the Starknet prime field 0x800000000000011000000000000000000000000000000000000000000000001.
+    //     \\We will add 0x800000000000011000000000000000000000000000000000000000000000000 and 0x4.
+    //     \\The result should be 3.
+    // , .{});
+    // const a = Felt252.fromInt(u256, 0x800000000000011000000000000000000000000000000000000000000000000);
+    // const b = Felt252.fromInt(u256, 0x4);
+    // const c = a.add(&b);
+    // std.debug.print("\nResult: {}\n", .{c.toU256()});
 }
 
-pub const TEST_ITERATIONS = 1;
+pub const TEST_ITERATIONS = 1000;
