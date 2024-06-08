@@ -6,6 +6,17 @@ const package_path = "src/lib.zig";
 // List of external dependencies that this package requires.
 const external_dependencies = [_]build_helpers.Dependency{};
 
+fn linkRustPrimeBindings(b: *std.Build, m: anytype, pathToObj: []const u8) void {
+    m.addIncludePath(b.path("./src/math/fields/prime/"));
+    m.addObjectFile(b.path(pathToObj));
+
+    if (@TypeOf(m) == *std.Build.Module) {
+        m.linkSystemLibrary("unwind", .{});
+    } else if (@TypeOf(m) == *std.Build.Step.Compile) {
+        m.linkSystemLibrary("unwind");
+    }
+}
+
 // Although this function looks imperative, note that its job is to
 // declaratively construct a build graph that will be executed by an external
 // runner.
@@ -37,7 +48,7 @@ pub fn build(b: *std.Build) void {
     ) catch unreachable;
 
     // currently support only macos aarch64 and linux x86_64
-    const staticName = switch (target.result.os.tag) {
+    const pathToObj = switch (target.result.os.tag) {
         .macos => switch (target.result.cpu.arch) {
             .aarch64 => "./src/math/fields/prime/libprime-macos-aarch64.a",
             else => @panic("not supported macos arch"),
@@ -55,14 +66,14 @@ pub fn build(b: *std.Build) void {
     // expose ziggy-starkdust as a module
     const ziggy_starkdust_mod = b.addModule(package_name, .{
         .root_source_file = b.path(package_path),
+        .target = target,
         .imports = deps,
         .optimize = optimize,
         .omit_frame_pointer = if (optimize == .ReleaseFast) true else false,
         .strip = true,
     });
 
-    ziggy_starkdust_mod.addIncludePath(b.path("./src/math/fields/prime/"));
-    ziggy_starkdust_mod.addObjectFile(b.path(staticName));
+    linkRustPrimeBindings(b, ziggy_starkdust_mod, pathToObj);
 
     // **************************************************************
     // *              ZIGGY STARKDUST AS A LIBRARY                        *
@@ -78,9 +89,7 @@ pub fn build(b: *std.Build) void {
         .strip = true,
     });
 
-    lib.addIncludePath(b.path("./src/math/fields/prime/"));
-    lib.addObjectFile(b.path(staticName));
-    lib.linkSystemLibrary("unwind");
+    linkRustPrimeBindings(b, lib, pathToObj);
 
     // Add dependency modules to the library.
     for (deps) |mod| lib.root_module.addImport(
@@ -106,9 +115,7 @@ pub fn build(b: *std.Build) void {
         .strip = true,
     });
 
-    exe.addIncludePath(b.path("./src/math/fields/prime/"));
-    exe.addObjectFile(b.path(staticName));
-    exe.linkSystemLibrary("unwind");
+    linkRustPrimeBindings(b, exe, pathToObj);
 
     // Add dependency modules to the executable.
     for (deps) |mod| exe.root_module.addImport(
@@ -171,8 +178,7 @@ pub fn build(b: *std.Build) void {
         .strip = true,
     });
 
-    unit_tests.addIncludePath(b.path("./src/math/fields/prime/"));
-    unit_tests.addObjectFile(b.path(staticName));
+    linkRustPrimeBindings(b, unit_tests, pathToObj);
 
     // Add dependency modules to the tests.
     for (deps) |mod| unit_tests.root_module.addImport(
