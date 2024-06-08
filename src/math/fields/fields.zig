@@ -529,7 +529,7 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
         ///
         /// # Returns:
         /// A new field element representing the result of the multiplication.
-        pub fn mul2(self: *const Self, rhs: *const Self) Self {
+        pub fn mul(self: *const Self, rhs: *const Self) Self {
             // Dereference the pointer to obtain the actual field element
             var a = self.*;
             // Call the `mulAssign` method to perform the multiplication in place
@@ -538,7 +538,7 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
             return a;
         }
 
-        pub fn mul(self: *const Self, rhs: *const Self) Self {
+        pub fn mul2(self: *const Self, rhs: *const Self) Self {
             // Dereference the pointer to obtain the actual field element
 
             if (comptime modulusHasSpareBit()) {
