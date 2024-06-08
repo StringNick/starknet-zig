@@ -11,7 +11,7 @@ test "benchmark field multiplication" {
     try benchmark(struct {
         // How many iterations to run each benchmark.
         // If not present then a default will be used.
-        pub const iterations = 1000;
+        pub const iterations = 10000;
 
         const a = Felt252.fromInt(
             u256,
@@ -23,6 +23,15 @@ test "benchmark field multiplication" {
         );
 
         const v = std.mem.toBytes(@as(u256, 0x4cd366c0feadabcd6c61a395f6d9f91484ac4e51c3f8aede6c0ab49e2a55446a));
+
+        pub fn benchMul() void {
+            const c = a.mul(&b);
+            _ = c; // autofix
+        }
+        pub fn benchMul2() void {
+            const c = a.mul(&b);
+            _ = c; // autofix
+        }
 
         pub fn benchIsPrime() void {
             _ = isPrime(u256, 1489313108020924784844819367773615431304754137524579622245743070945963);

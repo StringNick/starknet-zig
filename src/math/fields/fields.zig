@@ -86,7 +86,7 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
                 return res;
             }
 
-            return .{ .fe = montgomery.cios(n_limbs, big_int.fromInt(T, num), R2, Modulus, Inv) };
+            return .{ .fe = montgomery.cios(n_limbs, &big_int.fromInt(T, num), &R2, &Modulus, Inv) };
         }
 
         /// Creates a `Field` element from an integer value.
@@ -536,6 +536,16 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
             a.mulAssign(rhs);
             // Return the result
             return a;
+        }
+
+        pub fn mul2(self: *const Self, rhs: *const Self) Self {
+            // Dereference the pointer to obtain the actual field element
+
+            if (Self.modulusHasSpareBit()) {
+                return .{ .fe = montgomery.ciosOptimizedForModuliWithOneSpareBit(4, &self.fe, &rhs.fe, &Modulus, Inv) };
+            } else {
+                return .{ .fe = montgomery.cios(4, &self.fe, &rhs.fe, &Modulus, Inv) };
+            }
         }
 
         /// Performs modular multiplication using Montgomery multiplication algorithm.
