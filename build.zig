@@ -21,23 +21,6 @@ pub fn build(b: *std.Build) void {
     // set a preferred release mode, allowing the user to decide how to optimize.
     const optimize = b.standardOptimizeOption(.{});
 
-    // build cargo
-    var arena_state = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-    defer arena_state.deinit();
-    const arena = arena_state.allocator();
-
-    const path = b.build_root.path.?;
-    const result = std.process.Child.run(.{
-        .allocator = arena,
-        .cwd = path,
-        .argv = &.{
-            "make",
-            "build_prime_library",
-        },
-    }) catch unreachable;
-
-    std.log.err("{s}, {s}", .{ result.stdout, result.stderr });
-
     // **************************************************************
     // *            HANDLE DEPENDENCY MODULES                       *
     // **************************************************************
@@ -53,6 +36,19 @@ pub fn build(b: *std.Build) void {
         dependencies_opts,
     ) catch unreachable;
 
+    // currently support only macos aarch64 and linux x86_64
+    const staticName = switch (target.result.os.tag) {
+        .macos => switch (target.result.cpu.arch) {
+            .aarch64 => "./src/math/fields/prime/libprime-macos-aarch64.a",
+            else => @panic("not supported macos arch"),
+        },
+        .linux => switch (target.result.cpu.arch) {
+            .x86_64 => "./src/math/fields/prime/libprime-linux-x86_64.a",
+            else => @panic("not supported linux arch"),
+        },
+        else => @panic("not supported os"),
+    };
+
     // **************************************************************
     // *               ZIGGY STARKDUST AS A MODULE                        *
     // **************************************************************
@@ -66,7 +62,7 @@ pub fn build(b: *std.Build) void {
     });
 
     ziggy_starkdust_mod.addIncludePath(b.path("./src/math/fields/prime/"));
-    ziggy_starkdust_mod.addObjectFile(b.path("./src/math/fields/prime/libprime.a"));
+    ziggy_starkdust_mod.addObjectFile(b.path(staticName));
 
     // **************************************************************
     // *              ZIGGY STARKDUST AS A LIBRARY                        *
@@ -83,7 +79,7 @@ pub fn build(b: *std.Build) void {
     });
 
     lib.addIncludePath(b.path("./src/math/fields/prime/"));
-    lib.addObjectFile(b.path("./src/math/fields/prime/libprime.a"));
+    lib.addObjectFile(b.path(staticName));
     lib.linkSystemLibrary("unwind");
 
     // Add dependency modules to the library.
@@ -111,7 +107,7 @@ pub fn build(b: *std.Build) void {
     });
 
     exe.addIncludePath(b.path("./src/math/fields/prime/"));
-    exe.addObjectFile(b.path("./src/math/fields/prime/libprime.a"));
+    exe.addObjectFile(b.path(staticName));
     exe.linkSystemLibrary("unwind");
 
     // Add dependency modules to the executable.
@@ -176,8 +172,7 @@ pub fn build(b: *std.Build) void {
     });
 
     unit_tests.addIncludePath(b.path("./src/math/fields/prime/"));
-    unit_tests.addObjectFile(b.path("./src/math/fields/prime/libprime.a"));
-    unit_tests.linkSystemLibrary("unwind");
+    unit_tests.addObjectFile(b.path(staticName));
 
     // Add dependency modules to the tests.
     for (deps) |mod| unit_tests.root_module.addImport(
