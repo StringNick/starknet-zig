@@ -21,6 +21,23 @@ pub fn build(b: *std.Build) void {
     // set a preferred release mode, allowing the user to decide how to optimize.
     const optimize = b.standardOptimizeOption(.{});
 
+    // build cargo
+    var arena_state = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    defer arena_state.deinit();
+    const arena = arena_state.allocator();
+
+    const path = b.build_root.path.?;
+    const result = std.process.Child.run(.{
+        .allocator = arena,
+        .cwd = path,
+        .argv = &.{
+            "make",
+            "build_prime_library",
+        },
+    }) catch unreachable;
+
+    std.log.err("{s}, {s}", .{ result.stdout, result.stderr });
+
     // **************************************************************
     // *            HANDLE DEPENDENCY MODULES                       *
     // **************************************************************
@@ -90,7 +107,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
         .omit_frame_pointer = if (optimize == .ReleaseFast) true else false,
-        .strip = false,
+        .strip = true,
     });
 
     exe.addIncludePath(b.path("./src/math/fields/prime/"));
