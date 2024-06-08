@@ -69,8 +69,8 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .imports = deps,
         .optimize = optimize,
-        .omit_frame_pointer = if (optimize == .ReleaseFast) true else false,
-        .strip = true,
+        .omit_frame_pointer = if (optimize == .ReleaseFast) false else false,
+        .strip = false,
     });
 
     linkRustPrimeBindings(b, ziggy_starkdust_mod, pathToObj);
