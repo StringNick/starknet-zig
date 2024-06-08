@@ -20,7 +20,7 @@ pub const std_options = .{
 };
 
 pub fn main() !void {
-    for (0..TEST_ITERATIONS) |_| {
+    for (0..10000) |_| {
         _ = try isPrime2(u256, null, 1489313108020924784844819367773615431304754137524579622245743070945963);
     }
     std.log.debug("done", .{});
@@ -37,4 +37,4 @@ pub fn main() !void {
     // std.debug.print("\nResult: {}\n", .{c.toU256()});
 }
 
-pub const TEST_ITERATIONS = 1000;
+pub const TEST_ITERATIONS = 1;

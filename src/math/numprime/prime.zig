@@ -1,6 +1,7 @@
 const std = @import("std");
 const table = @import("table.zig");
 const RndGen = std.rand.DefaultPrng;
+const field = @import("../fields/fields.zig").Field;
 
 pub const PrimalityTestConfig = struct {
     // TODO: add option to divides small primes in the table
@@ -63,43 +64,55 @@ pub fn Either(comptime leftT: type, comptime rightT: type) type {
     };
 }
 
-fn ipow(comptime T: type, b: T, e: T, modulus: T) T {
-    var result: T = 1;
-    var base = b;
-
-    var exp = e;
-
-    while (true) {
-        if (exp & 1 != 0)
-            result = mulm(T, result, base, modulus);
-        exp >>= 1;
-
-        if (exp != 0)
-            break;
-
-        base = mulm(T, base, base, modulus);
+/// Modular multiplication
+pub fn mulmod(comptime T: type, a: T, b: T, m: T) !T {
+    if (T == comptime_int) return @mod(a * b, m);
+    if (@typeInfo(T) != .Int) {
+        @compileError("mulmod not implemented for " ++ @typeName(T));
     }
 
-    return result;
+    const modulus = m;
+    if (modulus == 0) return error.DivisionByZero;
+    if (modulus < 0) return error.NegativeModulus;
+
+    // On overflow, falling back on the multiplication property first
+    if (std.math.mul(T, a, b) catch std.math.mul(T, @mod(a, m), @mod(b, m))) |product| {
+        return @mod(product, modulus);
+    } else |_| {
+        const WideInt = std.meta.Int(@typeInfo(T).Int.signedness, @typeInfo(T).Int.bits * 2);
+        return @intCast(@mod(@as(WideInt, a) * @as(WideInt, b), @as(WideInt, m)));
+    }
 }
 
-fn powModulus(comptime T: type, b: T, e: T, modulus: T) T {
-    var base: T = b;
-    var exponent: T = e;
+/// Modular exponentiation
+///
+/// wikipedia.org/wiki/Modular_exponentiation#Right-to-left_binary_method
+pub fn powmod(comptime T: type, base: T, exponent: T, modulus: T) !T {
+    if (@typeInfo(T) != .Int) {
+        @compileError("powmod not implemented for " ++ @typeName(T));
+    }
 
-    if (modulus == 1) return 0;
+    // zig fmt: off
+    if (modulus == 0) return error.DivisionByZero;
+    if (modulus  < 0) return error.NegativeModulus;
+    // TODO Perform by finding the modular multiplicative inverse
+    if (exponent < 0) return error.NegativeExponent;
 
-    base = base % modulus;
+    if (modulus  == 1) return 0;
+    if (exponent == 2) return mulmod(T, base, base, modulus) catch unreachable;
+    // zig fmt: on
 
     var result: T = 1;
 
-    while (exponent > 0) {
-        if ((exponent & 1) == 1) {
-            result = @rem(result * base, modulus);
+    // TODO Replace with `var b, var e, const m = .{ base, exponent, modulus };`
+    var b = base;
+    var e = exponent;
+    const m = modulus;
+    while (e != 0) : (e >>= 1) {
+        if (e & 1 == 1) {
+            result = mulmod(T, result, b, m) catch unreachable;
         }
-
-        base = @rem(base * base, modulus);
-        exponent = exponent >> 1;
+        b = mulmod(T, b, b, m) catch unreachable;
     }
 
     return result;
@@ -134,7 +147,7 @@ fn testSprp(comptime T: type, self: T, base: T) Either(bool, T) {
     });
 
     // var x: T = @intCast(powModulus(std.meta.Int(.unsigned, @typeInfo(T).Int.bits * 2), base, u, self));
-    var x: T = ipow(T, base, u, self);
+    var x: T = powmod(T, base, u, self) catch unreachable;
 
     if (x == m1 or x == mm1) {
         return .{ .left = true };
@@ -142,7 +155,7 @@ fn testSprp(comptime T: type, self: T, base: T) Either(bool, T) {
 
     for (0..shift) |_| {
         // const y: T = @intCast(powModulus(std.meta.Int(.unsigned, @typeInfo(T).Int.bits * 2), x, 2, self));
-        const y: T = sqm(T, x, self);
+        const y: T = mulmod(T, x, x, self) catch unreachable;
 
         if (y == m1) {
             return .{ .right = std.math.gcd(self, x - 1) };
