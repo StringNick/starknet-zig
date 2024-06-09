@@ -70,7 +70,7 @@ pub fn build(b: *std.Build) void {
         .imports = deps,
         .optimize = optimize,
         .omit_frame_pointer = if (optimize == .ReleaseFast) false else false,
-        .strip = false,
+        .strip = if (optimize == .ReleaseFast) true else false,
     });
 
     linkRustPrimeBindings(b, ziggy_starkdust_mod, pathToObj);
@@ -86,7 +86,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
         .omit_frame_pointer = if (optimize == .ReleaseFast) true else false,
-        .strip = true,
+        .strip = if (optimize == .ReleaseFast) true else false,
     });
 
     linkRustPrimeBindings(b, lib, pathToObj);
@@ -112,7 +112,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
         .omit_frame_pointer = if (optimize == .ReleaseFast) true else false,
-        .strip = true,
+        .strip = if (optimize == .ReleaseFast) true else false,
     });
 
     linkRustPrimeBindings(b, exe, pathToObj);
@@ -175,7 +175,7 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
         .filter = test_filter,
         .omit_frame_pointer = if (optimize == .ReleaseFast) true else false,
-        .strip = true,
+        .strip = if (optimize == .ReleaseFast) true else false,
     });
 
     linkRustPrimeBindings(b, unit_tests, pathToObj);

@@ -16,8 +16,7 @@ pub fn cios(
     q: *const bigInteger(N),
     mu: u64,
 ) bigInteger(N) {
-    var result: bigInteger(N) = undefined;
-    var t = &result.limbs;
+    var t = [_]u64{0} ** N;
     var t_extra = [_]u64{0} ** 2;
 
     inline for (0..N) |i| {
@@ -62,6 +61,7 @@ pub fn cios(
     }
 
     const overflow = t_extra[1] > 0;
+    var result: bigInteger(N) = .{ .limbs = t };
 
     if (overflow or q.cmp(&result).compare(.lte)) {
         _ = result.subWithBorrowAssign(q);
