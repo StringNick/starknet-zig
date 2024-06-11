@@ -58,8 +58,17 @@ pub fn bigInt(comptime N: usize) type {
         pub fn fromInt(comptime T: type, num: T) Self {
             std.debug.assert(num >= 0);
 
-            const res: std.meta.Int(.unsigned, N * @bitSizeOf(u64)) = @intCast(num);
-            return .{ .limbs = @bitCast(res) };
+            var x = num;
+
+            var out = [_]u64{0} ** N;
+
+            inline for (0..N) |i| {
+                const t = if (@bitSizeOf(T) > @bitSizeOf(u64)) @as(u64, @truncate(x)) else x;
+                out[i] = t;
+                x = std.math.shr(T, x, @bitSizeOf(u64));
+            }
+
+            return .{ .limbs = out };
         }
 
         /// Convert the field element to a u256 integer.
@@ -72,6 +81,7 @@ pub fn bigInt(comptime N: usize) type {
         /// Returns:
         ///   - A u256 integer representing the field element.
         pub fn toU256(self: Self) u256 {
+            //
             return std.mem.readInt(
                 u256,
                 &self.toBytesLe(),

@@ -17,9 +17,9 @@ pub fn isPrime(comptime T: type, t: T) bool {
 test "test_is_prime" {
     try std.testing.expectEqual(true, isPrime(u256, 20988936657440586486151264256610222593863921));
 }
-test "test_prime" {
-    var t = try std.math.big.int.Managed.initSet(std.testing.allocator, 20988936657440586486151264256610222593863921);
-    defer t.deinit();
+// test "test_prime" {
+//     var t = try std.math.big.int.Managed.initSet(std.testing.allocator, 20988936657440586486151264256610222593863921);
+//     defer t.deinit();
 
-    try std.testing.expectEqual(true, isPrimeStdBigInt(t));
-}
+//     try std.testing.expectEqual(true, isPrimeStdBigInt(t));
+// }

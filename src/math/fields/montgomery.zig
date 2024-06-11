@@ -11,9 +11,9 @@ const bigInteger = @import("biginteger.zig").bigInt;
 /// ported from rust lambdaworks-math
 pub fn cios(
     comptime N: usize,
-    a: *const bigInteger(N),
-    b: *const bigInteger(N),
-    q: *const bigInteger(N),
+    a: bigInteger(N),
+    b: bigInteger(N),
+    q: bigInteger(N),
     mu: u64,
 ) bigInteger(N) {
     var t = [_]u64{0} ** N;
@@ -64,7 +64,7 @@ pub fn cios(
     var result: bigInteger(N) = .{ .limbs = t };
 
     if (overflow or q.cmp(&result).compare(.lte)) {
-        _ = result.subWithBorrowAssign(q);
+        _ = result.subWithBorrowAssign(&q);
     }
 
     return result;
@@ -79,9 +79,9 @@ pub fn cios(
 /// `mu` is the inverse of -q modulo 2^{64}
 pub fn ciosOptimizedForModuliWithOneSpareBit(
     comptime N: usize,
-    a: *const bigInteger(N),
-    b: *const bigInteger(N),
-    q: *const bigInteger(N),
+    a: bigInteger(N),
+    b: bigInteger(N),
+    q: bigInteger(N),
     mu: u64,
 ) bigInteger(N) {
     var t = [_]u64{0} ** N;
@@ -125,7 +125,7 @@ pub fn ciosOptimizedForModuliWithOneSpareBit(
     var result = bigInteger(N).init(t);
 
     if (q.cmp(&result).compare(.lte)) {
-        _ = result.subWithBorrowAssign(q);
+        _ = result.subWithBorrowAssign(&q);
     }
 
     return result;
@@ -136,9 +136,9 @@ test "Montgomery: from and to montgomery equal" {
 
     const expected = bigInteger(4).fromInt(u256, 255);
 
-    const montg = cios(4, &expected, &Felt252.R2, &Felt252.Modulus, Felt252.Inv);
+    const montg = cios(4, expected, Felt252.R2, Felt252.Modulus, Felt252.Inv);
 
-    const from_montg = cios(4, &montg, &bigInteger(4).fromInt(u8, 1), &Felt252.Modulus, Felt252.Inv);
+    const from_montg = cios(4, montg, bigInteger(4).fromInt(u8, 1), Felt252.Modulus, Felt252.Inv);
 
     try std.testing.expectEqual(expected, from_montg);
 }
@@ -153,5 +153,5 @@ test "cios vs cios optimized" {
     const m = U384.fromInt(u384, 0xcdb061954fdd36e5176f50dbdcfd349570a29ce1); // this is prime
 
     const mu: u64 = 16085280245840369887; // negative of the inverse of `m` modulo 2^{64}
-    try std.testing.expectEqual(cios(6, &x, &y, &m, mu), ciosOptimizedForModuliWithOneSpareBit(6, &x, &y, &m, mu));
+    try std.testing.expectEqual(cios(6, x, y, m, mu), ciosOptimizedForModuliWithOneSpareBit(6, x, y, m, mu));
 }

@@ -17,7 +17,7 @@ pub const fields = struct {
 };
 
 pub const prime = struct {
-    pub usingnamespace @import("math/numprime/prime.zig");
+    // pub usingnamespace @import("math/numprime/prime.zig");
 };
 
 pub const bench = struct {

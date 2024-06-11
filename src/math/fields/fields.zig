@@ -80,13 +80,13 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
         pub fn fromInt2(comptime T: type, num: T) Self {
             if (@typeInfo(T).Int.signedness == .signed) {
                 const val = @abs(num);
-                var res = fromInt(@TypeOf(val), val);
+                var res = fromInt2(@TypeOf(val), val);
                 if (num < 0) res.negAssign();
 
                 return res;
             }
 
-            return .{ .fe = montgomery.cios(n_limbs, &big_int.fromInt(T, num), &R2, &Modulus, Inv) };
+            return .{ .fe = montgomery.ciosOptimizedForModuliWithOneSpareBit(n_limbs, big_int.fromInt(T, num), R2, Modulus, Inv) };
         }
 
         /// Creates a `Field` element from an integer value.
@@ -113,7 +113,7 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
                 return res;
             }
 
-            return toMontgomery(big_int.fromInt(T, if (comptime @typeInfo(T).Int.bits < 256) num else num % modulo));
+            return toMontgomery(big_int.fromInt(T, if (@typeInfo(T).Int.bits < 256) num else num % modulo));
         }
 
         /// Generates a random field element within the finite field using a provided random number generator.
@@ -538,13 +538,13 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
             return a;
         }
 
-        pub fn mul2(self: *const Self, rhs: *const Self) Self {
+        pub fn mul2(self: Self, rhs: Self) Self {
             // Dereference the pointer to obtain the actual field element
 
             if (comptime modulusHasSpareBit()) {
-                return .{ .fe = montgomery.ciosOptimizedForModuliWithOneSpareBit(n_limbs, &self.fe, &rhs.fe, &Modulus, Inv) };
+                return .{ .fe = montgomery.ciosOptimizedForModuliWithOneSpareBit(n_limbs, self.fe, rhs.fe, Modulus, Inv) };
             } else {
-                return .{ .fe = montgomery.cios(4, &self.fe, &rhs.fe, &Modulus, Inv) };
+                return .{ .fe = montgomery.cios(4, self.fe, rhs.fe, Modulus, Inv) };
             }
         }
 

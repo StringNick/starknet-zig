@@ -25,13 +25,11 @@ test "benchmark field multiplication" {
         const v = std.mem.toBytes(@as(u256, 0x4cd366c0feadabcd6c61a395f6d9f91484ac4e51c3f8aede6c0ab49e2a55446a));
 
         pub fn benchMul() void {
-            const c = a.mul(&b);
-            _ = c; // autofix
+            _ = a.mul(&b);
         }
 
         pub fn benchMul2() void {
-            const c = a.mul(&b);
-            _ = c; // autofix
+            _ = a.mul2(b);
         }
 
         pub fn benchIsPrime() void {
@@ -72,15 +70,11 @@ test "benchmark field multiplication" {
         }
 
         pub fn bench_from2() void {
-            for (0..100) |_| {
-                _ = Felt252.fromInt2(u256, 0x4cd366c0feadabcd6c61a395f6d9f91484ac4e51c3f8aede6c0ab49e2a55446a);
-            }
+            _ = Felt252.fromInt2(u256, 0x4cd366c0feadabcd6c61a395f6d9f91484ac4e51c3f8aede6c0ab49e2a55446a);
         }
 
         pub fn bench_from() void {
-            for (0..100) |_| {
-                _ = Felt252.fromInt(u256, 0x4cd366c0feadabcd6c61a395f6d9f91484ac4e51c3f8aede6c0ab49e2a55446a);
-            }
+            _ = Felt252.fromInt(u256, 0x4cd366c0feadabcd6c61a395f6d9f91484ac4e51c3f8aede6c0ab49e2a55446a);
         }
     });
 }
