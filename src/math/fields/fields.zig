@@ -582,9 +582,9 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
                     r[0] = arithmetic.mac(r[0], self.fe.limbs[0], rhs.fe.limbs[i], &carry1);
 
                     // Compute the Montgomery factor k and perform the corresponding multiplication and reduction
-                    const k: u64 = r[0] *% comptime Inv;
+                    const k: u64 = r[0] *% Inv;
                     var carry2: u64 = 0;
-                    arithmetic.macDiscard(r[0], k, comptime Modulus.limbs[0], &carry2);
+                    arithmetic.macDiscard(r[0], k, Modulus.limbs[0], &carry2);
 
                     // Iterate over the remaining digits and perform the multiplications and accumulations
                     inline for (1..n_limbs) |j| {

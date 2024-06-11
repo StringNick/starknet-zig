@@ -8,7 +8,7 @@ const expectEqual = std.testing.expectEqual;
 /// - setting `carry` to the upper 64 bits.
 pub inline fn mac(a: u64, b: u64, c: u64, carry: *u64) u64 {
     const tmp = @as(u128, a) + @as(u128, b) * @as(u128, c);
-    carry.* = @intCast(tmp >> 64);
+    carry.* = @truncate(tmp >> 64);
     return @truncate(tmp);
 }
 
@@ -20,7 +20,7 @@ pub inline fn mac(a: u64, b: u64, c: u64, carry: *u64) u64 {
 /// making it suitable for cases where only the carry value is needed.
 pub inline fn macDiscard(a: u64, b: u64, c: u64, carry: *u64) void {
     const tmp = @as(u128, a) + @as(u128, b) * @as(u128, c);
-    carry.* = @intCast(tmp >> 64);
+    carry.* = @truncate(tmp >> 64);
 }
 
 /// Calculates the result of a + b * c + carry:
@@ -28,7 +28,7 @@ pub inline fn macDiscard(a: u64, b: u64, c: u64, carry: *u64) void {
 /// - setting `carry` to the upper 64 bits.
 pub inline fn macWithCarry(a: u64, b: u64, c: u64, carry: *u64) u64 {
     const tmp = @as(u128, a) + @as(u128, b) * @as(u128, c) + @as(u128, carry.*);
-    carry.* = @intCast(tmp >> 64);
+    carry.* = @truncate(tmp >> 64);
     return @truncate(tmp);
 }
 
@@ -44,7 +44,7 @@ pub inline fn sbb(comptime T: type, a: *u64, b: u64, borrow: T) T {
     const tmp = (@as(u128, 1) << 64) + @as(u128, a.*) -
         @as(u128, b) - @as(u128, @intCast(borrow));
     a.* = @truncate(tmp);
-    return @intCast(@intFromBool(tmp >> 64 == 0));
+    return @intFromBool(tmp >> 64 == 0);
 }
 
 /// Sets a = a + b + carry, and returns the new carry.
@@ -55,7 +55,7 @@ pub inline fn sbb(comptime T: type, a: *u64, b: u64, borrow: T) T {
 pub inline fn adc(comptime T: type, a: *u64, b: u64, carry: T) T {
     const tmp = @as(u128, a.*) + @as(u128, b) + @as(u128, carry);
     a.* = @truncate(tmp);
-    return @intCast(tmp >> 64);
+    return @truncate(tmp >> 64);
 }
 
 pub fn powModulus(b: u512, e: u512, modulus: u512) u512 {
