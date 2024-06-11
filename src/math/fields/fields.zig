@@ -538,7 +538,7 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
             return a;
         }
 
-        pub fn mul(self: Self, rhs: Self) Self {
+        pub fn mul(self: Self, rhs: *const Self) Self {
             // Dereference the pointer to obtain the actual field element
 
             if (comptime modulusHasSpareBit()) {
