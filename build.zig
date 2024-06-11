@@ -85,8 +85,8 @@ pub fn build(b: *std.Build) void {
         .root_source_file = b.path("src/lib.zig"),
         .target = target,
         .optimize = optimize,
-        .omit_frame_pointer = if (optimize == .ReleaseFast) true else false,
-        .strip = if (optimize == .ReleaseFast) true else false,
+        .omit_frame_pointer = if (optimize == .ReleaseFast) false else false,
+        .strip = if (optimize == .ReleaseFast) false else false,
     });
 
     linkRustPrimeBindings(b, lib, pathToObj);
@@ -113,6 +113,8 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
         .omit_frame_pointer = if (optimize == .ReleaseFast) true else false,
         .strip = if (optimize == .ReleaseFast) true else false,
+        .single_threaded = true,
+        .code_model = .large,
     });
 
     linkRustPrimeBindings(b, exe, pathToObj);
