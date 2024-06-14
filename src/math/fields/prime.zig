@@ -3,7 +3,7 @@ const std = @import("std");
 const prime = @cImport(@cInclude("prime.h"));
 
 pub fn isPrimeStdBigInt(t: std.math.big.int.Managed) bool {
-    return prime.is_prime(@ptrCast(&t.limbs[0]), t.metadata);
+    return prime.is_prime(@ptrCast(&t.limbs[0]), t.len());
 }
 
 pub fn isPrime(comptime T: type, t: T) bool {
