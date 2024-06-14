@@ -5,7 +5,7 @@ const montgomery = @import("../math/fields/montgomery.zig");
 const field = @import("../math/fields/fields.zig");
 const std = @import("std");
 const isPrime = @import("../math/fields/prime.zig").isPrime;
-const isPrime2 = @import("../math/numprime/prime.zig").isPrime;
+// const isPrime2 = @import("../math/numprime/prime.zig").isPrime;
 
 test "benchmark field multiplication" {
     try benchmark(struct {
@@ -29,16 +29,16 @@ test "benchmark field multiplication" {
         }
 
         pub fn benchMul2() void {
-            _ = a.mul2(b);
+            _ = a.mul2(&b);
         }
 
         pub fn benchIsPrime() void {
             _ = isPrime(u256, 1489313108020924784844819367773615431304754137524579622245743070945963);
         }
 
-        pub fn benchIsPrime2() void {
-            _ = isPrime2(u256, null, 1489313108020924784844819367773615431304754137524579622245743070945963) catch unreachable;
-        }
+        // pub fn benchIsPrime2() void {
+        //     _ = isPrime2(u256, null, 1489313108020924784844819367773615431304754137524579622245743070945963) catch unreachable;
+        // }
 
         pub fn modFloor2() void {
             _ = a.modFloor2(b);
