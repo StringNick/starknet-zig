@@ -77,10 +77,11 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
         fe: big_int = .{},
 
         // TODO remove
-        pub fn fromInt2(comptime T: type, num: T) Self {
+        pub inline fn fromInt2(comptime T: type, num: T) Self {
             if (@typeInfo(T).Int.signedness == .signed) {
                 const val = @abs(num);
                 var res = fromInt2(@TypeOf(val), val);
+
                 if (num < 0) res.negAssign();
 
                 return res;
@@ -104,7 +105,9 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
         /// Errors:
         /// If `num` is negative, an assertion failure occurs.
         /// If `T` represents an integer type with more than 128 bits, an error is raised due to unsupported integer sizes.
-        pub fn fromInt(comptime T: type, num: T) Self {
+        pub inline fn fromInt(comptime T: type, num: T) Self {
+            @setEvalBranchQuota(10000);
+
             if (@typeInfo(T).Int.signedness == .signed) {
                 const val = @abs(num);
                 var res = fromInt(@TypeOf(val), val);
@@ -212,7 +215,7 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
         ///
         /// # Returns:
         /// A new `Field` element in Montgomery form representing the input value.
-        pub fn toMontgomery(value: big_int) Self {
+        pub inline fn toMontgomery(value: big_int) Self {
             // Initialize a field element with the given value
             var r: Self = .{ .fe = value };
 
