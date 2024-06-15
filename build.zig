@@ -70,7 +70,7 @@ pub fn build(b: *std.Build) void {
         .imports = deps,
         .optimize = optimize,
         .omit_frame_pointer = if (optimize == .ReleaseFast) null else false,
-        .strip = if (optimize == .ReleaseFast) true else null,
+        .strip = if (optimize == .ReleaseFast) null else null,
     });
 
     linkRustPrimeBindings(b, ziggy_starkdust_mod, pathToObj);
