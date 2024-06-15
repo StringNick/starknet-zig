@@ -77,10 +77,10 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
         fe: big_int = .{},
 
         // TODO remove
-        pub fn fromInt2(comptime T: type, num: T) Self {
+        pub fn fromInt(comptime T: type, num: T) Self {
             if (@typeInfo(T).Int.signedness == .signed) {
                 const val = @abs(num);
-                var res = fromInt2(@TypeOf(val), val);
+                var res = fromInt(@TypeOf(val), val);
                 if (num < 0) res.negAssign();
 
                 return res;
@@ -104,7 +104,7 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
         /// Errors:
         /// If `num` is negative, an assertion failure occurs.
         /// If `T` represents an integer type with more than 128 bits, an error is raised due to unsupported integer sizes.
-        pub fn fromInt(comptime T: type, num: T) Self {
+        pub fn fromInt2(comptime T: type, num: T) Self {
             if (@typeInfo(T).Int.signedness == .signed) {
                 const val = @abs(num);
                 var res = fromInt(@TypeOf(val), val);
@@ -529,7 +529,7 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
         ///
         /// # Returns:
         /// A new field element representing the result of the multiplication.
-        pub fn mul(self: *const Self, rhs: *const Self) Self {
+        pub fn mul2(self: *const Self, rhs: *const Self) Self {
             // Dereference the pointer to obtain the actual field element
             var a = self.*;
             // Call the `mulAssign` method to perform the multiplication in place
@@ -538,7 +538,7 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
             return a;
         }
 
-        pub fn mul2(self: Self, rhs: *const Self) Self {
+        pub fn mul(self: Self, rhs: *const Self) Self {
             // Dereference the pointer to obtain the actual field element
 
             if (comptime modulusHasSpareBit()) {
