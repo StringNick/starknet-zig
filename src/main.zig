@@ -2,6 +2,10 @@
 const std = @import("std");
 const builtin = @import("builtin");
 
+const bigInt = @import("./math/fields/biginteger.zig").bigInt;
+
+const montgomery = @import("./math/fields/montgomery.zig");
+
 // Local imports.
 const customlogFn = @import("utils/log.zig").logFn;
 const Felt252 = @import("math/fields/starknet.zig").Felt252;
@@ -20,10 +24,12 @@ pub const std_options = .{
 };
 
 pub fn main() !void {
-    for (0..10000) |_| {
-        _ = try isPrime2(u256, null, 1489313108020924784844819367773615431304754137524579622245743070945963);
+    var n: bigInt(4) = .{ .limbs = .{ 1, 2, 3, 4 } };
+    for (0..1000_000_0) |_| {
+        n = montgomery.cios(4, n, n, n, 32);
+        // _ = try isPrime2(u256, null, 1489313108020924784844819367773615431304754137524579622245743070945963);
     }
-    std.log.debug("done", .{});
+    // std.log.debug("done", .{});
     // std.log.debug("starknet-zig\n", .{});
     // std.debug.print(
     //     \\Let's add two field elements together.
