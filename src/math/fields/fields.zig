@@ -77,10 +77,10 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
         fe: big_int = .{},
 
         // TODO remove
-        pub inline fn fromInt(comptime T: type, num: T) Self {
+        pub inline fn fromInt2(comptime T: type, num: T) Self {
             if (@typeInfo(T).Int.signedness == .signed) {
                 const val = @abs(num);
-                var res = fromInt(@TypeOf(val), val);
+                var res = fromInt2(@TypeOf(val), val);
 
                 if (num < 0) res.negAssign();
 
@@ -105,12 +105,12 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
         /// Errors:
         /// If `num` is negative, an assertion failure occurs.
         /// If `T` represents an integer type with more than 128 bits, an error is raised due to unsupported integer sizes.
-        pub inline fn fromInt2(comptime T: type, num: T) Self {
+        pub inline fn fromInt(comptime T: type, num: T) Self {
             @setEvalBranchQuota(10000);
 
             if (@typeInfo(T).Int.signedness == .signed) {
                 const val = @abs(num);
-                var res = fromInt2(@TypeOf(val), val);
+                var res = fromInt(@TypeOf(val), val);
                 if (num < 0) res.negAssign();
 
                 return res;
@@ -532,16 +532,16 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
         ///
         /// # Returns:
         /// A new field element representing the result of the multiplication.
-        pub fn mul2(self: *const Self, rhs: *const Self) Self {
+        pub fn mul(self: *const Self, rhs: *const Self) Self {
             // Dereference the pointer to obtain the actual field element
             var a = self.*;
             // Call the `mulAssign` method to perform the multiplication in place
-            a.mulAssign2(rhs);
+            a.mulAssign(rhs);
             // Return the result
             return a;
         }
 
-        pub fn mul(self: *const Self, rhs: *const Self) Self {
+        pub fn mul2(self: *const Self, rhs: *const Self) Self {
             // Dereference the pointer to obtain the actual field element
 
             if (comptime modulusHasSpareBit()) {
@@ -551,7 +551,7 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
             }
         }
 
-        pub fn mulAssign(self: *Self, rhs: *const Self) void {
+        pub fn mulAssign2(self: *Self, rhs: *const Self) void {
             // Dereference the pointer to obtain the actual field element
 
             if (comptime modulusHasSpareBit()) {
@@ -582,7 +582,7 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
         /// zero bit in the rest of the modulus.
         ///
         /// For another reference implementation, see [arkworks-rs/algebra](https://github.com/arkworks-rs/algebra/blob/3a6156785e12eeb9083a7a402ac037de01f6c069/ff/src/fields/models/fp/montgomery_backend.rs#L151)
-        pub inline fn mulAssign2(self: *Self, rhs: *const Self) void {
+        pub inline fn mulAssign(self: *Self, rhs: *const Self) void {
             // TODO: add CIOS implementation in case no carry mul optimization cannot be used
             if (comptime canUseNoCarryMulOptimization()) {
                 // Initialize the result array
