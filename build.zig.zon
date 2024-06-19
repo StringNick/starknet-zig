@@ -8,5 +8,10 @@
         "LICENSE",
         "README.md",
     },
-    .dependencies = .{},
+    .dependencies = .{
+        .zul = .{
+            .url = "https://github.com/karlseguin/zul/archive/7779642127b560a04075da96d9d07703847923cb.zip",
+            .hash = "12203d26bd4179e9072949037a2a99a12c88909c27f2465f230beec7b1a6b1db8688",
+        },
+    },
 }

@@ -183,6 +183,7 @@ pub fn bigInt(comptime N: usize) type {
         /// Returns:
         ///   - true if the big integers are equal, false otherwise.
         pub fn eql(self: Self, rhs: Self) bool {
+            //
             return std.mem.eql(u64, &self.limbs, &rhs.limbs);
         }
 
@@ -664,16 +665,19 @@ pub fn bigInt(comptime N: usize) type {
             }
 
             return .eq;
-            // // Obtain pointers to the limbs of the big integers
-            // var a = self.limbs;
-            // var b = rhs.limbs;
+        }
 
-            // // Reverse the order of limbs from little-endian to big-endian
-            // _ = std.mem.reverse(u64, a[0..]);
-            // _ = std.mem.reverse(u64, b[0..]);
+        pub fn cmp2(self: *const Self, rhs: *const Self) std.math.Order {
+            // Obtain pointers to the limbs of the big integers
+            var a = self.limbs;
+            var b = rhs.limbs;
 
-            // // Compare the big integers using byte-wise comparison
-            // return std.mem.order(u64, &a, &b);
+            // Reverse the order of limbs from little-endian to big-endian
+            _ = std.mem.reverse(u64, a[0..]);
+            _ = std.mem.reverse(u64, b[0..]);
+
+            // Compare the big integers using byte-wise comparison
+            return std.mem.order(u64, &a, &b);
         }
 
         /// Checks if a big integer is less than another big integer.

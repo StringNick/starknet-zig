@@ -60,6 +60,8 @@ pub fn build(b: *std.Build) void {
         else => @panic("not supported os"),
     };
 
+    benchmarks(b, optimize, target, pathToObj);
+
     // **************************************************************
     // *               ZIGGY STARKDUST AS A MODULE                        *
     // **************************************************************
@@ -197,6 +199,34 @@ pub fn build(b: *std.Build) void {
     );
     test_step.dependOn(&lib.step);
     test_step.dependOn(&run_unit_tests.step);
+}
+
+fn benchmarks(
+    b: *std.Build,
+    mode: std.builtin.Mode,
+    target: std.Build.ResolvedTarget,
+    pathObj: []const u8,
+) void {
+    const binary = b.addExecutable(.{
+        .name = "benchmarks",
+        .root_source_file = b.path("src/benchmarks.zig"),
+        .target = target,
+        .optimize = mode,
+    });
+
+    const zul = b.dependency("zul", .{
+        .target = target,
+        .optimize = mode,
+    });
+
+    binary.root_module.addImport("zul", zul.module("zul"));
+    linkRustPrimeBindings(b, binary, pathObj);
+
+    const benchmark_build = b.step("benchmark", "Cli: Run benchmarks");
+    benchmark_build.dependOn(&binary.step);
+
+    const run_step = b.addRunArtifact(binary);
+    benchmark_build.dependOn(&run_step.step);
 }
 
 fn pedersen_table_gen(
