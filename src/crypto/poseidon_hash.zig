@@ -143,12 +143,12 @@ pub const PoseidonHasher = struct {
                 // AddRoundConstants.
                 self.state[i].addAssign(&poseidon_constants.POSEIDON_COMPRESSED_ROUND_CONSTS[idx + i]);
                 // SubWords.
-                self.state[i] = self.state[i].powToInt(3);
+                self.state[i] = self.state[i].powToIntConst(3);
             }
         } else {
             // AddRoundConstants for partial round.
             self.state[2].addAssign(&poseidon_constants.POSEIDON_COMPRESSED_ROUND_CONSTS[idx]);
-            self.state[2] = self.state[2].powToInt(3);
+            self.state[2] = self.state[2].powToIntConst(3);
         }
 
         // MixLayer.

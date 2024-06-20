@@ -815,6 +815,33 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
             return Self.fromInt(u8, 2).powToInt(exponent);
         }
 
+        // pub fn powToIntConst(self: Self, comptime exponent: usize) Self {
+        //     var res = self;
+        //     inline for (0..exponent) |_| res.mulAssign(&self);
+        //     return res;
+        // }
+
+        // TODO write desc
+        pub fn powToIntConst(self: Self, comptime exponent: usize) Self {
+            if (comptime exponent <= 2)
+                switch (exponent) {
+                    inline 0 => return Self.one(),
+                    inline 1 => return self,
+                    inline 2 => return self.square(),
+                    inline else => {},
+                };
+
+            var res = self;
+            res.squareAssign();
+            const till = comptime val: {
+                break :val exponent - 2;
+            };
+
+            inline for (0..till) |_| res.mulAssign(&self);
+
+            return res;
+        }
+
         /// Raise a field element to a general power.
         ///
         /// Computes the field element raised to a general power specified by the `exponent`.

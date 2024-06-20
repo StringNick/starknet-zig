@@ -47,6 +47,26 @@ pub fn from(context: Context, _: std.mem.Allocator, t: *std.time.Timer) !void {
     _ = Felt252.fromInt(u256, val);
 }
 
+pub fn powToInt(context: Context, _: std.mem.Allocator, t: *std.time.Timer) !void {
+    const idx = context.rand.random().intRangeLessThan(usize, 0, context.randomNumbers.len);
+
+    const val = context.randomNumbers[idx];
+    const d = Felt252.fromInt(u256, val);
+    t.reset();
+
+    _ = d.powToInt(3);
+}
+
+pub fn powToIntConst(context: Context, _: std.mem.Allocator, t: *std.time.Timer) !void {
+    const idx = context.rand.random().intRangeLessThan(usize, 0, context.randomNumbers.len);
+
+    const val = context.randomNumbers[idx];
+    const d = Felt252.fromInt(u256, val);
+    t.reset();
+
+    _ = d.powToIntConst(3);
+}
+
 const Context = struct {
     randomNumbers: [1000]u256,
     rand: *std.Random.Xoshiro256,
@@ -55,11 +75,6 @@ const Context = struct {
 pub fn main() !void {
     var rand = std.Random.DefaultPrng.init(13414);
 
-    const ctxtes: []const []const Context = &.{
-        ([_]Context{.{ .randomNumbers = undefined, .rand = undefined }} ** 3)[0..],
-    };
-
-    _ = ctxtes; // autofix
     var ctx = Context{
         .randomNumbers = undefined,
         .rand = &rand,
@@ -69,6 +84,8 @@ pub fn main() !void {
 
     (try zul.benchmark.runC(ctx, from, .{})).print("from");
     (try zul.benchmark.runC(ctx, from2, .{})).print("from2");
+    (try zul.benchmark.runC(ctx, powToInt, .{})).print("powToInt");
+    (try zul.benchmark.runC(ctx, powToIntConst, .{})).print("powToIntConst");
 
     (try zul.benchmark.run(benchMul, .{})).print("mul");
     (try zul.benchmark.run(benchMul2, .{})).print("mul2");
