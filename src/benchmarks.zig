@@ -1,6 +1,7 @@
 const zul = @import("zul");
 const std = @import("std");
 const Felt252 = @import("math/fields/starknet.zig").Felt252;
+const poseidon = @import("crypto/poseidon_hash.zig");
 
 const a = Felt252.fromInt(
     u256,
@@ -67,6 +68,21 @@ pub fn powToIntConst(context: Context, _: std.mem.Allocator, t: *std.time.Timer)
     _ = d.powToIntConst(3);
 }
 
+pub fn poseidonBench(context: Context, _: std.mem.Allocator, t: *std.time.Timer) !void {
+    const idx = context.rand.random().intRangeLessThan(usize, 0, context.randomNumbers.len - 3);
+
+    const val = context.randomNumbers[idx .. idx + 3];
+
+    var hasher = poseidon.PoseidonHasher{ .state = .{
+        Felt252.fromInt(u256, val[0]),
+        Felt252.fromInt(u256, val[1]),
+        Felt252.fromInt(u256, val[2]),
+    } };
+    t.reset();
+
+    hasher.permuteComp();
+}
+
 const Context = struct {
     randomNumbers: [1000]u256,
     rand: *std.Random.Xoshiro256,
@@ -83,6 +99,7 @@ pub fn main() !void {
     rand.fill(std.mem.asBytes(ctx.randomNumbers[0..]));
 
     (try zul.benchmark.runC(ctx, from, .{})).print("from");
+    (try zul.benchmark.runC(ctx, poseidonBench, .{})).print("poseidonMix");
     (try zul.benchmark.runC(ctx, from2, .{})).print("from2");
     (try zul.benchmark.runC(ctx, powToInt, .{})).print("powToInt");
     (try zul.benchmark.runC(ctx, powToIntConst, .{})).print("powToIntConst");

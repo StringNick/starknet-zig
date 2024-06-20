@@ -94,19 +94,19 @@ pub const PoseidonHasher = struct {
         var idx: usize = 0;
 
         // Apply full rounds at the beginning.
-        for (0..poseidon_constants.POSEIDON_FULL_ROUNDS / 2) |_| {
+        inline for (0..poseidon_constants.POSEIDON_FULL_ROUNDS / 2) |_| {
             self.roundComp(idx, true);
             idx += 3;
         }
 
         // Apply partial rounds in the middle.
-        for (0..poseidon_constants.POSEIDON_PARTIAL_ROUNDS) |_| {
+        inline for (0..poseidon_constants.POSEIDON_PARTIAL_ROUNDS) |_| {
             self.roundComp(idx, false);
             idx += 1;
         }
 
         // Apply full rounds at the end.
-        for (0..poseidon_constants.POSEIDON_FULL_ROUNDS / 2) |_| {
+        inline for (0..poseidon_constants.POSEIDON_FULL_ROUNDS / 2) |_| {
             self.roundComp(idx, true);
             idx += 3;
         }
@@ -171,7 +171,8 @@ pub const PoseidonHasher = struct {
     /// - `self`: A pointer to the current struct instance.
     pub inline fn mix(self: *Self) void {
         // Summation of state elements.
-        const t = self.state[0].add(&self.state[1]).add(&self.state[2]);
+        var t = self.state[0];
+        inline for (1..3) |i| t.addAssign(&self.state[i]);
 
         // Doubling and addition for state[0].
         self.state[0].doubleAssign();
@@ -179,13 +180,11 @@ pub const PoseidonHasher = struct {
 
         // Doubling, negation, and addition for state[1].
         self.state[1].doubleAssign();
-        self.state[1].negAssign();
-        self.state[1].addAssign(&t);
+        self.state[1] = t.sub(&self.state[1]);
 
         // Multiplication, negation, and addition for state[2].
         self.state[2].mulAssign(&comptime Felt252.three());
-        self.state[2].negAssign();
-        self.state[2].addAssign(&t);
+        self.state[2] = t.sub(&self.state[2]);
     }
 
     /// Hashes two elements and returns the resulting hash.
