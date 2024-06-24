@@ -2,6 +2,10 @@ const zul = @import("zul");
 const std = @import("std");
 const Felt252 = @import("math/fields/starknet.zig").Felt252;
 const poseidon = @import("crypto/poseidon_hash.zig");
+const pedersen = @import("crypto/pedersen_hash.zig");
+
+const isPrime = @import("math/fields/prime.zig").isPrime;
+const isPrime2 = @import("math/numprime/prime.zig").isPrime;
 
 const a = Felt252.fromInt(
     u256,
@@ -83,6 +87,38 @@ pub fn poseidonBench(context: Context, _: std.mem.Allocator, t: *std.time.Timer)
     hasher.permuteComp();
 }
 
+pub fn pedersenBench(context: Context, _: std.mem.Allocator, t: *std.time.Timer) !void {
+    const idx = context.rand.random().intRangeLessThan(usize, 0, context.randomNumbers.len - 2);
+
+    const val1 = Felt252.fromInt(u256, context.randomNumbers[idx]);
+    const val2 = Felt252.fromInt(u256, context.randomNumbers[idx + 1]);
+
+    t.reset();
+
+    _ = pedersen.pedersenHash(val1, val2);
+}
+
+pub fn isPrimeBench(context: Context, _: std.mem.Allocator, t: *std.time.Timer) !void {
+    const idx = context.rand.random().intRangeLessThan(usize, 0, context.randomNumbers.len - 1);
+    _ = idx; // autofix
+
+    // const val1 = context.randomNumbers[idx];
+
+    t.reset();
+    _ = isPrime(u256, 18446744069414584321);
+}
+
+fn isPrime2Bench(context: Context, _: std.mem.Allocator, t: *std.time.Timer) !void {
+    const idx = context.rand.random().intRangeLessThan(usize, 0, context.randomNumbers.len - 1);
+
+    const val1 = context.randomNumbers[idx];
+    _ = val1; // autofix
+
+    t.reset();
+    // big prime 1489313108020924784844819367773615431304754137524579622245743070945963
+    _ = try isPrime2(u256, .{}, 18446744069414584321);
+}
+
 const Context = struct {
     randomNumbers: [1000]u256,
     rand: *std.Random.Xoshiro256,
@@ -98,14 +134,19 @@ pub fn main() !void {
 
     rand.fill(std.mem.asBytes(ctx.randomNumbers[0..]));
 
-    (try zul.benchmark.runC(ctx, from, .{})).print("from");
-    (try zul.benchmark.runC(ctx, poseidonBench, .{})).print("poseidonMix");
-    (try zul.benchmark.runC(ctx, from2, .{})).print("from2");
-    (try zul.benchmark.runC(ctx, powToInt, .{})).print("powToInt");
-    (try zul.benchmark.runC(ctx, powToIntConst, .{})).print("powToIntConst");
+    (try zul.benchmark.runC(ctx, isPrimeBench, .{})).print("isPrime");
+    (try zul.benchmark.runC(ctx, isPrime2Bench, .{})).print("isPrime2");
+
+    (try zul.benchmark.run(benchMulAssign, .{})).print("mulAssign");
+    (try zul.benchmark.run(benchMulAssign2, .{})).print("mulAssign2");
 
     (try zul.benchmark.run(benchMul, .{})).print("mul");
     (try zul.benchmark.run(benchMul2, .{})).print("mul2");
-    (try zul.benchmark.run(benchMulAssign, .{})).print("mulAssign");
-    (try zul.benchmark.run(benchMulAssign2, .{})).print("mulAssign2");
+
+    (try zul.benchmark.runC(ctx, from, .{})).print("from");
+    (try zul.benchmark.runC(ctx, poseidonBench, .{})).print("poseidonPermuteComp");
+    // (try zul.benchmark.runC(ctx, pedersenBench, .{})).print("pedersenHash");
+    (try zul.benchmark.runC(ctx, from2, .{})).print("from2");
+    (try zul.benchmark.runC(ctx, powToInt, .{})).print("powToInt");
+    (try zul.benchmark.runC(ctx, powToIntConst, .{})).print("powToIntConst");
 }

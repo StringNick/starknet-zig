@@ -58,6 +58,8 @@ pub fn bigInt(comptime N: usize) type {
         pub fn fromInt(comptime T: type, num: T) Self {
             std.debug.assert(num >= 0);
 
+            if (@sizeOf(T) == @sizeOf(Self)) return .{ .limbs = @bitCast(num) };
+
             var x = num;
 
             var out = [_]u64{0} ** N;
@@ -118,14 +120,12 @@ pub fn bigInt(comptime N: usize) type {
         ///   - A new instance of the `bigInt` struct representing the value one.
         pub fn one() Self {
             // Compile-time computation to generate a big integer with a value of one
-            comptime {
-                // Initialize an array of limbs with all zeros
-                var o = [_]u64{0} ** N;
-                // Set the first limb to one
-                o[0] = 1;
-                // Return a new instance of the `bigInt` struct with the generated limbs
-                return .{ .limbs = o };
-            }
+            // Initialize an array of limbs with all zeros
+            var o = [_]u64{0} ** N;
+            // Set the first limb to one
+            o[0] = 1;
+            // Return a new instance of the `bigInt` struct with the generated limbs
+            return .{ .limbs = o };
         }
 
         /// Checks if a big integer is zero.

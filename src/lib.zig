@@ -17,12 +17,12 @@ pub const fields = struct {
 };
 
 pub const prime = struct {
-    // pub usingnamespace @import("math/numprime/prime.zig");
+    pub usingnamespace @import("math/numprime/prime.zig");
 };
 
 pub const bench = struct {
     pub usingnamespace @import("bench/bench.zig");
-    pub usingnamespace @import("bench/bench_field.zig");
+    // pub usingnamespace @import("bench/bench_field.zig");
 };
 
 pub const crypto = struct {

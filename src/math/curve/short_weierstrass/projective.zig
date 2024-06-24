@@ -542,11 +542,15 @@ pub const ProjectivePoint = struct {
     /// coordinates.
     pub fn addAffineAssign(self: *Self, rhs: *const AffinePoint) void {
         // If rhs is the identity point, no operation is needed.
-        if (rhs.isIdentity()) return;
+        // if (rhs.isIdentity()) return;
 
         // If self is the identity point, update self to rhs and return.
         if (self.isIdentity()) {
             self.* = Self.fromAffinePoint(rhs);
+            return;
+        }
+
+        if (rhs.isIdentity()) {
             return;
         }
 

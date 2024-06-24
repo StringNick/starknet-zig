@@ -108,7 +108,7 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
         pub inline fn fromInt(comptime T: type, num: T) Self {
             @setEvalBranchQuota(10000);
 
-            if (@typeInfo(T).Int.signedness == .signed) {
+            if (comptime @typeInfo(T).Int.signedness == .signed) {
                 const val = @abs(num);
                 var res = fromInt(@TypeOf(val), val);
                 if (num < 0) res.negAssign();
@@ -116,7 +116,7 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
                 return res;
             }
 
-            return toMontgomery(big_int.fromInt(T, if (@typeInfo(T).Int.bits < 256) num else num % modulo));
+            return toMontgomery(big_int.fromInt(T, if (comptime @typeInfo(T).Int.bits < 256) num else num % modulo));
         }
 
         /// Generates a random field element within the finite field using a provided random number generator.
@@ -1141,7 +1141,7 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
             var u = self.fe;
             var v = Modulus;
             var b: Self = .{ .fe = R2 };
-            var c = zero();
+            var c = comptime zero();
 
             // Iterate while both u and v are not one
             while (!u.eql(o) and !v.eql(o)) {
@@ -1177,7 +1177,7 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
                 }
 
                 // Update based on u vs v values
-                if (v.cmp(&u) == .lt) {
+                if (v.cmp(&u).compare(.lte)) {
                     _ = u.subWithBorrowAssign(&v);
                     b.subAssign(&c);
                 } else {

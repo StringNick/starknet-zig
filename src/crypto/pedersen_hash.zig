@@ -24,7 +24,7 @@ fn addPoints(acc: *ProjectivePoint, bits: []const bool, prep: []const AffinePoin
     const table_size = (1 << pedersen_constants.CURVE_CONSTS_BITS) - 1;
 
     for (0..bits.len / pedersen_constants.CURVE_CONSTS_BITS) |i| {
-        const offset = boolsToUsizeLe(bits[i * pedersen_constants.CURVE_CONSTS_BITS .. (i + 1) * pedersen_constants.CURVE_CONSTS_BITS][0..4]);
+        const offset = boolsToUsizeLe(bits[i * pedersen_constants.CURVE_CONSTS_BITS .. (i + 1) * pedersen_constants.CURVE_CONSTS_BITS]);
 
         if (offset > 0) {
             // Table lookup at 'offset-1' in table for chunk 'i'
