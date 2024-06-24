@@ -74,17 +74,24 @@ pub fn mulmod(comptime T: type, a: T, b: T, m: T) !T {
         @compileError("mulmod not implemented for " ++ @typeName(T));
     }
 
-    const modulus = m;
-    if (modulus == 0) return error.DivisionByZero;
-    if (modulus < 0) return error.NegativeModulus;
+    const limb_count =
+        comptime @typeInfo(T).Int.bits / 64;
 
-    // On overflow, falling back on the multiplication property first
-    if (std.math.mul(T, a, b) catch std.math.mul(T, @mod(a, m), @mod(b, m))) |product| {
-        return @mod(product, modulus);
-    } else |_| {
-        const WideInt = std.meta.Int(@typeInfo(T).Int.signedness, @typeInfo(T).Int.bits * 2);
-        return @intCast(@mod(@as(WideInt, a) * @as(WideInt, b), @as(WideInt, m)));
-    }
+    // std.log.err("exponent {any}", .{exponent});
+
+    const modulus_big = bigInteger(limb_count).fromInt(T, m);
+
+    const R2 = montgomery.computeR2Montgomery(limb_count, modulus_big);
+    const Inv = montgomery.computeInvMontgomery(limb_count, modulus_big);
+
+    const Field = montgomery.Field(limb_count);
+
+    var _b = Field.fromInt(T, b, R2, modulus_big, Inv);
+    var _a = Field.fromInt(T, a, R2, modulus_big, Inv);
+
+    _b.mulAssign(&_a, modulus_big, Inv);
+
+    return @bitCast(_b.toBigInt(modulus_big, Inv).limbs);
 }
 
 /// Modular exponentiation
@@ -103,9 +110,14 @@ pub fn powmod(comptime T: type, base: T, exponent: T, modulus: T) !T {
 
     if (modulus  == 1) return 0;
     if (exponent == 2) return mulmod(T, base, base, modulus) catch unreachable;
+
+    // if (@typeInfo(T).Int.bits <= 64) {
+    //     return binpow(T, base, exponent, modulus);
+    // }
+    
     // zig fmt: on
     const limb_count =
-        @typeInfo(T).Int.bits / 64;
+        comptime @typeInfo(T).Int.bits / 64;
 
     // std.log.err("exponent {any}", .{exponent});
 
@@ -230,6 +242,7 @@ fn isPrime64Miller(target: u64) bool {
         return false;
     }
 
+    // if (1 == 1) return true;
     var h = target;
     h = ((h >> 32) ^ h) *% 0x45d9f3b3335b369;
     h = ((h >> 32) ^ h) *% 0x3335b36945d9f3b;
@@ -240,7 +253,6 @@ fn isPrime64Miller(target: u64) bool {
 }
 
 pub fn isPrime(comptime T: type, comptime cfg: ?PrimalityTestConfig, number: T) !bool {
-    std.log.err("is prime {any}", .{number});
     // shortcuts
     if ((number & 1) == 0)
         return if (number == 2)
@@ -287,7 +299,6 @@ pub fn isPrime(comptime T: type, comptime cfg: ?PrimalityTestConfig, number: T) 
     // we dont need another algos to check probability, only sprp
 
     for (witness_list) |x| {
-        std.log.err("salamcheg {any}, {any}", .{ x, isSprp(T, number, x) });
         if (isSprp(T, number, x) == false) return false;
     }
 
@@ -295,10 +306,10 @@ pub fn isPrime(comptime T: type, comptime cfg: ?PrimalityTestConfig, number: T) 
 }
 
 test "is_prime" {
-    // try std.testing.expectEqual(true, try isPrime(u64, null, 7));
-    // try std.testing.expectEqual(true, try isPrime(u64, null, 18446744069414584321));
+    try std.testing.expectEqual(true, try isPrime(u64, null, 7));
+    try std.testing.expectEqual(true, try isPrime(u64, null, 18446744069414584321));
     try std.testing.expectEqual(true, try isPrime(u256, null, 1489313108020924784844819367773615431304754137524579622245743070945963));
-    // try std.testing.expectEqual(false, try isPrime(u256, null, 1489313108020924784844819367773615431304754137524579622245743070945961));
+    try std.testing.expectEqual(false, try isPrime(u256, null, 1489313108020924784844819367773615431304754137524579622245743070945961));
 }
 
 test "sprp_test" {

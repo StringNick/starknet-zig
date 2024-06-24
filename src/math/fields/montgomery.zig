@@ -487,7 +487,7 @@ pub fn Field(comptime n_limbs: usize) type {
         /// The algorithm efficiently utilizes inline loops for performance optimization.
         /// Additionally, it supports modulus subtraction if the modulus has a spare bit.
         pub fn squareAssign(self: *Self, modulus: big_int, inv: u64) void {
-            self.fe = sosSquare(n_limbs, self.fe, modulus, inv);
+            mulAssign(self, self, modulus, inv);
         }
 
         /// Raise a field element with base value 2 to a general power up to 251.
@@ -681,21 +681,18 @@ pub fn sosSquare(
     // is a multiple of both `2^{NUM_LIMBS * 64}` and
     // `q`.
     var c: u128 = 0;
-    var i = N;
-    while (i > 0) {
-        i -= 1;
+
+    inline for (0..N) |i| {
         c = 0;
         const m: u64 = @truncate(@as(u128, lo.limbs[i]) * @as(u128, mu));
-        var j = N;
-        while (j > 0) {
-            j -= 1;
-            if (i + j >= N - 1) {
-                const index = i + j - (N - 1);
+        inline for (0..N) |j| {
+            if (i + j <= N - 1) {
+                const index = i + j;
                 const cs = @as(u128, lo.limbs[index]) + @as(u128, m) * @as(u128, q.limbs[j]) + c;
                 c = cs >> 64;
                 lo.limbs[index] = @truncate(cs);
             } else {
-                const index = i + j + 1;
+                const index = i + j - N + 1;
                 const cs = @as(u128, hi.limbs[index]) + @as(u128, m) * @as(u128, q.limbs[j]) + c;
                 c = cs >> 64;
                 hi.limbs[index] = @truncate(cs);

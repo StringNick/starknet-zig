@@ -116,7 +116,7 @@ fn isPrime2Bench(context: Context, _: std.mem.Allocator, t: *std.time.Timer) !vo
 
     t.reset();
     // big prime 1489313108020924784844819367773615431304754137524579622245743070945963
-    _ = try isPrime2(u256, .{}, 18446744069414584321);
+    _ = try isPrime2(u64, .{}, 18446744069414584321);
 }
 
 const Context = struct {
