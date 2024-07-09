@@ -474,7 +474,7 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
         /// TODO: add precomution?
         pub fn sqrt(self: Self) ?Self {
             const v = arithmetic.tonelliShanks(self.toU256(), modulo);
-            return if (v[2]) fromInt(u256, @intCast(v[0])) else null;
+            return if (v[2]) fromInt(u256, @intCast(@min(v[0], v[1]))) else null;
         }
 
         /// Determines whether the current modulus allows for a specific optimization in modular multiplication.
