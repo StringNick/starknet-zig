@@ -5,6 +5,7 @@ const field = @import("../fields/fields.zig").Field;
 
 const bigInteger = @import("../fields/biginteger.zig").bigInt;
 const montgomery = @import("../fields/montgomery.zig");
+const arithmetic = @import("../fields/arithmetic.zig");
 
 pub const PrimalityTestConfig = struct {
     // TODO: add option to divides small primes in the table
@@ -21,21 +22,6 @@ pub const PrimalityTestConfig = struct {
     /// Whether perform extra strong lucas probable prime test (with automatically selected parameters)
     eslprp_test: bool = false,
 };
-
-pub fn mulm(comptime T: type, lhs: T, rhs: T, m: T) T {
-    const dT = std.meta.Int(.unsigned, @typeInfo(T).Int.bits * 2);
-    const result, const over = @mulWithOverflow(lhs, rhs);
-    if (over == 0) {
-        return result;
-    }
-
-    const val = @as(dT, lhs) * @as(dT, rhs) % @as(dT, m);
-    return @truncate(val);
-}
-
-pub fn sqm(comptime T: type, self: T, m: T) T {
-    return mulm(T, self, self, m);
-}
 
 /// NaiveBuffer implements a very simple Sieve of Eratosthenes
 pub const NaiveBuffer = struct {
@@ -57,82 +43,11 @@ pub const NaiveBuffer = struct {
     }
 };
 
-// fn is_sprp(&self, base: Self) -> bool {
-//     self.test_sprp(base).either(|v| v, |_| false)
-// }
 pub fn Either(comptime leftT: type, comptime rightT: type) type {
     return union(enum) {
         left: leftT,
         right: rightT,
     };
-}
-
-/// Modular multiplication
-pub fn mulmod(comptime T: type, a: T, b: T, m: T) !T {
-    if (T == comptime_int) return @mod(a * b, m);
-    if (@typeInfo(T) != .Int) {
-        @compileError("mulmod not implemented for " ++ @typeName(T));
-    }
-
-    const limb_count =
-        comptime @typeInfo(T).Int.bits / 64;
-
-    // std.log.err("exponent {any}", .{exponent});
-
-    const modulus_big = bigInteger(limb_count).fromInt(T, m);
-
-    const R2 = montgomery.computeR2Montgomery(limb_count, modulus_big);
-    const Inv = montgomery.computeInvMontgomery(limb_count, modulus_big);
-
-    const Field = montgomery.Field(limb_count);
-
-    var _b = Field.fromInt(T, b, R2, modulus_big, Inv);
-    var _a = Field.fromInt(T, a, R2, modulus_big, Inv);
-
-    _b.mulAssign(&_a, modulus_big, Inv);
-
-    return @bitCast(_b.toBigInt(modulus_big, Inv).limbs);
-}
-
-/// Modular exponentiation
-///
-/// wikipedia.org/wiki/Modular_exponentiation#Right-to-left_binary_method
-pub fn powmod(comptime T: type, base: T, exponent: T, modulus: T) !T {
-    if (@typeInfo(T) != .Int) {
-        @compileError("powmod not implemented for " ++ @typeName(T));
-    }
-
-    // zig fmt: off
-    if (modulus == 0) return error.DivisionByZero;
-    if (modulus  < 0) return error.NegativeModulus;
-    // TODO Perform by finding the modular multiplicative inverse
-    if (exponent < 0) return error.NegativeExponent;
-
-    if (modulus  == 1) return 0;
-    if (exponent == 2) return mulmod(T, base, base, modulus) catch unreachable;
-
-    // if (@typeInfo(T).Int.bits <= 64) {
-    //     return binpow(T, base, exponent, modulus);
-    // }
-    
-    // zig fmt: on
-    const limb_count =
-        comptime @typeInfo(T).Int.bits / 64;
-
-    // std.log.err("exponent {any}", .{exponent});
-
-    const modulus_big = bigInteger(limb_count).fromInt(T, modulus);
-
-    const R2 = montgomery.computeR2Montgomery(limb_count, modulus_big);
-    const Inv = montgomery.computeInvMontgomery(limb_count, modulus_big);
-
-    const Field = montgomery.Field(limb_count);
-
-    var b = Field.fromInt(T, base, R2, modulus_big, Inv);
-
-    b.powAssign(&bigInteger(limb_count).fromInt(T, exponent), R2, modulus_big, Inv);
-
-    return @bitCast(b.toBigInt(modulus_big, Inv).limbs);
 }
 
 fn isSprp(comptime T: type, self: T, base: T) bool {
@@ -152,41 +67,40 @@ fn testSprp(comptime T: type, self: T, base: T) Either(bool, T) {
     const shift = @ctz(tm1);
     const u = std.math.shr(T, tm1, shift);
 
-    // prevent reduction if the input is in montgomery form
-    const m1 = 1 % self;
-    const mm1 = (val: {
-        const x = m1 % self;
-        if (x == 0) {
-            break :val 0;
-        } else {
-            break :val self - x;
-        }
-    });
+    const limb_count =
+        comptime @typeInfo(T).Int.bits / 64;
 
-    // var x: T = @intCast(powModulus(std.meta.Int(.unsigned, @typeInfo(T).Int.bits * 2), base, u, self));
+    const F = montgomery.Field(limb_count);
 
-    var x: T = powmod(T, base, u, self) catch unreachable;
+    var x = F.fromInt(T, base, self);
 
-    if (x == m1 or x == mm1) {
+    x = x.powToInt(u);
+
+    const m1 = F.fromIntWithData(u64, 1, x.r2, x.modulus, x.inv);
+
+    var mm1 = m1;
+    mm1.negAssign();
+
+    if (x.fe.eql(m1.fe) or x.fe.eql(mm1.fe)) {
         return .{ .left = true };
     }
 
     for (0..shift) |_| {
-        // const y: T = @intCast(powModulus(std.meta.Int(.unsigned, @typeInfo(T).Int.bits * 2), x, 2, self));
-        const y: T = mulmod(T, x, x, self) catch unreachable;
+        var y = x;
+        y.mulAssign(&y);
 
-        if (y == m1) {
-            return .{ .right = std.math.gcd(self, x - 1) };
+        if (y.fe.eql(m1.fe)) {
+            return .{ .right = 0 };
         }
 
-        if (y == mm1) {
+        if (y.fe.eql(mm1.fe)) {
             return .{ .left = true };
         }
 
         x = y;
     }
 
-    return .{ .left = x == m1 };
+    return .{ .left = x.fe.eql(m1.fe) };
 }
 
 /// Very fast primality test on a u64 integer is a prime number. It's based on
@@ -242,7 +156,6 @@ fn isPrime64Miller(target: u64) bool {
         return false;
     }
 
-    // if (1 == 1) return true;
     var h = target;
     h = ((h >> 32) ^ h) *% 0x45d9f3b3335b369;
     h = ((h >> 32) ^ h) *% 0x3335b36945d9f3b;
@@ -262,11 +175,12 @@ pub fn isPrime(comptime T: type, comptime cfg: ?PrimalityTestConfig, number: T) 
 
     // do deterministic test if target is under 2^64
     if (comptime @typeInfo(T).Int.bits <= 64) {
-        if (number <= std.math.maxInt(u64)) {
-            return isPrime64(@truncate(number));
-        }
+        return isPrime64(number);
     }
 
+    if (number <= std.math.maxInt(u64)) {
+        return isPrime64(@truncate(number));
+    }
     // TODO: config as argument
     const config = cfg orelse PrimalityTestConfig{};
     // var probability: f32 = 1.0;
@@ -279,7 +193,7 @@ pub fn isPrime(comptime T: type, comptime cfg: ?PrimalityTestConfig, number: T) 
         // probability *= (1.0 - std.math.pow(f32, 0.25, @floatFromInt(config.sprp_trials)));
     }
 
-    var rnd = RndGen.init(0);
+    var rnd = RndGen.init(@bitCast(std.time.timestamp()));
     if (config.sprp_random_trials > 0) {
         for (0..config.sprp_random_trials) |i| {
             // we have ensured target is larger than 2^64
@@ -292,12 +206,9 @@ pub fn isPrime(comptime T: type, comptime cfg: ?PrimalityTestConfig, number: T) 
 
             witness_list[i + config.sprp_trials] = w;
         }
-
-        // probability *= (1.0 - std.math.pow(f32, 0.25, @floatFromInt(config.sprp_random_trials)));
     }
 
     // we dont need another algos to check probability, only sprp
-
     for (witness_list) |x| {
         if (isSprp(T, number, x) == false) return false;
     }
@@ -306,16 +217,33 @@ pub fn isPrime(comptime T: type, comptime cfg: ?PrimalityTestConfig, number: T) 
 }
 
 test "is_prime" {
+    try std.testing.expectEqual(true, try isPrime(u192, null, 3160627764927513289620384882792821105838947206441849759813));
+
+    try std.testing.expectEqual(true, try isPrime(u192, null, 5764832813333353515948744950633024025186264784801315604993));
+
+    try std.testing.expectEqual(true, try isPrime(u128, null, 3459023292465768231769));
+
+    // less than equal 64 bit prime check
+    try std.testing.expectEqual(false, try isPrime(u64, null, 4));
     try std.testing.expectEqual(true, try isPrime(u64, null, 7));
+    try std.testing.expectEqual(true, try isPrime(u64, null, 193));
+    try std.testing.expectEqual(true, try isPrime(u64, null, 63521));
+    try std.testing.expectEqual(true, try isPrime(u64, null, 2876412481));
+    try std.testing.expectEqual(true, try isPrime(u64, null, 758105553599));
+    try std.testing.expectEqual(true, try isPrime(u64, null, 144260754288829));
+    try std.testing.expectEqual(true, try isPrime(u64, null, 48156831561473449));
+    try std.testing.expectEqual(true, try isPrime(u64, null, 10241082060017620583));
+    try std.testing.expectEqual(true, try isPrime(u64, null, 12654157));
     try std.testing.expectEqual(true, try isPrime(u64, null, 18446744069414584321));
+    // end of it
+
+    try std.testing.expectEqual(false, try isPrime(u128, null, 174333704537955174084498843097741352677));
+    try std.testing.expectEqual(false, try isPrime(u192, null, 13632814354644356817627273389719377694617167));
+
     try std.testing.expectEqual(true, try isPrime(u256, null, 1489313108020924784844819367773615431304754137524579622245743070945963));
+    try std.testing.expectEqual(true, try isPrime(u256, null, 58439895430190581190666953963550055989211516870257943404603512697700968118731));
+    try std.testing.expectEqual(true, try isPrime(u256, null, 94767248925316862866242448706799956186377412712579780364762034688283235353763));
+
+    try std.testing.expectEqual(false, try isPrime(u256, null, 77371252455336267181195165));
     try std.testing.expectEqual(false, try isPrime(u256, null, 1489313108020924784844819367773615431304754137524579622245743070945961));
-}
-
-test "sprp_test" {
-    // const spsp = [5]u16{ 2047, 3277, 4033, 4681, 8321 };
-    // inline for (spsp) |psp|
-    //     try std.testing.expect(isSprp(u16, psp, 2));
-
-    // try std.testing.expectEqual(Either(bool, u16){ .right = 31 }, testSprp(u16, 341, 2));exponent
 }

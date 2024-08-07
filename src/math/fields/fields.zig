@@ -1110,6 +1110,68 @@ pub fn Field(comptime n_limbs: usize, comptime modulo: u256) type {
             _ = self.fe.subWithBorrowAssign(&rhs.fe);
         }
 
+        pub fn inverse2(self: *const Self) ?Self {
+            if (self.isZero()) return null;
+
+            const _one = comptime big_int.fromInt(u64, 1);
+            const modulus = comptime Modulus;
+
+            var u = self.fe;
+            var v = Modulus;
+            var b = R2; // Avoids unnecessary reduction step.
+            var c = Self.zero().fe;
+
+            while (!u.eql(_one) and !v.eql(_one)) {
+                while (u.limbs[0] & 1 == 0) {
+                    u.shrAssign(1);
+
+                    if (b.limbs[0] & 1 == 0) {
+                        b.shrAssign(1);
+                    } else {
+                        const carry = b.addWithCarryAssign(&modulus);
+                        b.shrAssign(1);
+
+                        if (comptime !modulusHasSpareBit() and carry) {
+                            b.limbs[n_limbs - 1] |= 1 << 63;
+                        }
+                    }
+                }
+
+                while (v.limbs[0] & 1 == 0) {
+                    v.shrAssign(1);
+
+                    if (c.limbs[0] & 1 == 0) {
+                        c.shrAssign(1);
+                    } else {
+                        const carry = c.addWithCarryAssign(&modulus);
+                        c.shrAssign(1);
+                        if (comptime !modulusHasSpareBit() and carry) {
+                            c.limbs[n_limbs - 1] |= 1 << 63;
+                        }
+                    }
+                }
+
+                if (v.cmp(&u).compare(.lte)) {
+                    _ = u.subWithBorrowAssign(&v);
+                    if (b.cmp(&c).compare(.lt)) {
+                        _ = b.addWithCarryAssign(&modulus);
+                    }
+
+                    _ = b.subWithBorrowAssign(&c);
+                } else {
+                    _ = v.subWithBorrowAssign(&u);
+                    if (c.cmp(&b).compare(.lt)) {
+                        _ = c.addWithCarryAssign(&modulus);
+                    }
+                    _ = c.subWithBorrowAssign(&b);
+                }
+            }
+
+            if (u.eql(_one)) return .{ .fe = b };
+
+            return .{ .fe = c };
+        }
+
         /// Computes the multiplicative inverse of a given element in a finite field using the binary Extended Euclidean Algorithm (BEA).
         ///
         /// Reference: Efficient Software-Implementation of Finite Fields with Applications to Cryptography

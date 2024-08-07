@@ -24,9 +24,10 @@ pub const std_options = .{
 };
 
 pub fn main() !void {
-    var n: bigInt(4) = .{ .limbs = .{ 1, 2, 3, 4 } };
-    for (0..1000_000_0) |_| {
-        n = montgomery.cios(4, n, n, n, 32);
+    var rnd = std.Random.DefaultPrng.init(@intCast(std.time.timestamp()));
+    for (0..1000000) |_| {
+        // _ = try isPrime2(u64, null, 18446744069414584321);
+        _ = try isPrime2(u64, null, rnd.next());
         // _ = try isPrime2(u256, null, 1489313108020924784844819367773615431304754137524579622245743070945963);
     }
     // std.log.debug("done", .{});

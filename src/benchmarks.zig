@@ -29,6 +29,33 @@ pub fn benchMulAssign(_: std.mem.Allocator, t: *std.time.Timer) !void {
     t.reset();
     c.mulAssign(&b);
 }
+
+pub fn benchEql(_: Context, _: std.mem.Allocator, t: *std.time.Timer) !void {
+    const c = Felt252.fromInt(u256, std.math.maxInt(u256) - 10);
+    const e = Felt252.fromInt(u256, std.math.maxInt(u256) - 255);
+    t.reset();
+    _ = e.eql(c);
+}
+pub fn benchInv(_: Context, _: std.mem.Allocator, t: *std.time.Timer) !void {
+    const c = Felt252.fromInt(u256, std.math.maxInt(u256) - 10);
+    t.reset();
+    _ = c.inverse();
+}
+
+pub fn benchInv2(_: Context, _: std.mem.Allocator, t: *std.time.Timer) !void {
+    const c = Felt252.fromInt(u256, std.math.maxInt(u256) - 10);
+    t.reset();
+    _ = c.inverse2();
+}
+
+pub fn benchEql2(_: Context, _: std.mem.Allocator, t: *std.time.Timer) !void {
+    const c = Felt252.fromInt(u256, std.math.maxInt(u256) - 10);
+    const e = Felt252.fromInt(u256, std.math.maxInt(u256) - 255);
+    t.reset();
+
+    _ = e.fe.ne(c.fe);
+}
+
 pub fn benchMulAssign2(_: std.mem.Allocator, t: *std.time.Timer) !void {
     var c = Felt252.fromInt(u256, 12345);
     t.reset();
@@ -105,7 +132,7 @@ pub fn isPrimeBench(context: Context, _: std.mem.Allocator, t: *std.time.Timer) 
     // const val1 = context.randomNumbers[idx];
 
     t.reset();
-    _ = isPrime(u256, 18446744069414584321);
+    _ = isPrime(u64, 18446744069414584321);
 }
 
 fn isPrime2Bench(context: Context, _: std.mem.Allocator, t: *std.time.Timer) !void {
@@ -137,16 +164,24 @@ pub fn main() !void {
     (try zul.benchmark.runC(ctx, isPrimeBench, .{})).print("isPrime");
     (try zul.benchmark.runC(ctx, isPrime2Bench, .{})).print("isPrime2");
 
+    (try zul.benchmark.runC(ctx, from, .{})).print("from");
+    (try zul.benchmark.runC(ctx, from2, .{})).print("from2");
+
+    (try zul.benchmark.runC(ctx, benchInv, .{})).print("inverse");
+    (try zul.benchmark.runC(ctx, benchInv2, .{})).print("inverse2");
+
+    (try zul.benchmark.runC(ctx, benchEql, .{})).print("eql");
+    (try zul.benchmark.runC(ctx, benchEql2, .{})).print("eql2");
+
     (try zul.benchmark.run(benchMulAssign, .{})).print("mulAssign");
     (try zul.benchmark.run(benchMulAssign2, .{})).print("mulAssign2");
 
     (try zul.benchmark.run(benchMul, .{})).print("mul");
     (try zul.benchmark.run(benchMul2, .{})).print("mul2");
 
-    (try zul.benchmark.runC(ctx, from, .{})).print("from");
     (try zul.benchmark.runC(ctx, poseidonBench, .{})).print("poseidonPermuteComp");
     // (try zul.benchmark.runC(ctx, pedersenBench, .{})).print("pedersenHash");
-    (try zul.benchmark.runC(ctx, from2, .{})).print("from2");
+
     (try zul.benchmark.runC(ctx, powToInt, .{})).print("powToInt");
     (try zul.benchmark.runC(ctx, powToIntConst, .{})).print("powToIntConst");
 }

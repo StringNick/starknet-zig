@@ -91,6 +91,10 @@ pub fn bigInt(comptime N: usize) type {
             );
         }
 
+        pub fn toBaseInt(self: Self) std.meta.Int(.unsigned, @bitSizeOf(u64) * N) {
+            return @bitCast(self.toBytesLe());
+        }
+
         /// Try to convert the field element to a u64 if its value is small enough.
         ///
         /// Attempts to convert the field element to a u64 if its value is within the representable range.
@@ -184,7 +188,11 @@ pub fn bigInt(comptime N: usize) type {
         ///   - true if the big integers are equal, false otherwise.
         pub fn eql(self: Self, rhs: Self) bool {
             //
-            return std.mem.eql(u64, &self.limbs, &rhs.limbs);
+            inline for (0..N) |i| {
+                if (self.limbs[i] != rhs.limbs[i]) return false;
+            }
+
+            return true;
         }
 
         /// Checks if two big integers are not equal.
@@ -655,7 +663,7 @@ pub fn bigInt(comptime N: usize) type {
         ///   - The big integers are compared in a byte-wise manner after converting their limbs to big-endian order.
         ///   - The comparison result is returned as an enum value indicating the relative order.
         ///   - This function can be used to determine the relative order of big integers for sorting or comparison purposes.
-        pub fn cmp(self: *const Self, rhs: *const Self) std.math.Order {
+        pub inline fn cmp(self: *const Self, rhs: *const Self) std.math.Order {
             inline for (0..N) |i| {
                 if (self.limbs[N - i - 1] > rhs.limbs[N - i - 1]) {
                     return .gt;
