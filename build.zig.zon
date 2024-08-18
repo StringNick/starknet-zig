@@ -10,8 +10,8 @@
     },
     .dependencies = .{
         .zul = .{
-            .url = "https://github.com/karlseguin/zul/archive/7779642127b560a04075da96d9d07703847923cb.zip",
-            .hash = "12203d26bd4179e9072949037a2a99a12c88909c27f2465f230beec7b1a6b1db8688",
+            .url = "https://github.com/karlseguin/zul/archive/ae0c27350c0db6b460f22cba30b6b0c4a02d1ffd.zip",
+            .hash = "1220457e2c8867f6734520d9b335f01e1d851d6fe7adaa7f6f0756158acaf6c5e87f",
         },
     },
 }

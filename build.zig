@@ -55,6 +55,7 @@ pub fn build(b: *std.Build) void {
         },
         .linux => switch (target.result.cpu.arch) {
             .x86_64 => "./src/math/fields/prime/libprime-linux-x86_64.a",
+            .aarch64 => "./src/math/fields/prime/libprime-linux-aarch64.a",
             else => @panic("not supported linux arch"),
         },
         else => @panic("not supported os"),

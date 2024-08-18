@@ -116,16 +116,15 @@ pub fn isPrime64(target: u64) bool {
     }
 
     const S = struct {
-        fn order_u64(context: void, lhs: u64, rhs: u64) std.math.Order {
-            _ = context;
-            return std.math.order(lhs, rhs);
+        fn order_u64(context: u64, rhs: u64) std.math.Order {
+            return std.math.order(context, rhs);
         }
     };
 
     // remove small factors
     if (target < table.SMALL_PRIMES_NEXT) {
         // find in the prime list if the target is small enough
-        return if (std.sort.binarySearch(u64, target, table.SMALL_PRIMES[0..], {}, S.order_u64) != null) true else false;
+        return if (std.sort.binarySearch(u64, table.SMALL_PRIMES[0..], target, S.order_u64) != null) true else false;
     } else {
         // check remainder against the wheel table
         // this step eliminates any number that is not coprime to WHEEL_SIZE
